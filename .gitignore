@@ -1,0 +1,54 @@
+# Prerequisites
+*.d
+
+# Byte-compiled/optimized/DLL files
+__pycache__/
+*.py[cod]
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.x
+*.exe
+*.out
+*.app
+
+# Conda Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Distribution
+.Python
+bin/
+build/
+install/
+lib/
+lib64/
