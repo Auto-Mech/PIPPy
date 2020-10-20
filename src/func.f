@@ -48,17 +48,17 @@
      & " basis and writing it to basis.dat"
       endif
       if (imode.eq.0) then     ! use all terms
-        lreaddisc = .false.  ! remove disconnected terms?
+        lreaddisc = .false.  ! remove unconnected terms?
         lremintra = .false.  ! remove intramolecular-only terms?
         linteronly = .false. ! use only intermolecular terms?
         write(6,*)"Mode = 0: Using all bond distances"
-      elseif (imode.eq.1) then ! remove disconnected and intra-only terms
+      elseif (imode.eq.1) then ! remove unconnected and intra-only terms
         lreaddisc = .true.
         lremintra = .true.
         linteronly = .false.
         write(6,*)"Mode = 1: Using all bond distances and removing",
-     & " disconnected and intramolecular-only terms"
-      elseif (imode.eq.2) then ! remove disconnected terms
+     & " unconnected and intramolecular-only terms"
+      elseif (imode.eq.2) then ! remove unconnected terms
         lreaddisc = .true.
         lremintra = .false.
         linteronly = .false.
@@ -330,7 +330,7 @@ c symmetrize
           discind(i,2)=0
         enddo
 
-        ndp=0        ! number of disconnected pairs
+        ndp=0        ! number of unconnected pairs
 
         do i=1,natom
           ndg(dgroup(m,i))=ndg(dgroup(m,i))+1
@@ -340,13 +340,13 @@ c symmetrize
 ccc LOOP OVER MOLECULAR GROUPS
         DO dg1=1,dgtot-1
         if (ndg(dg1).le.1) then
-          print *,"No disconnected groups possible"
+          print *,"No unconnected groups possible"
         else
         DO dg2=dg1+1,dgtot
           if (ndg(dg2).le.1) then
-            print *,"No disconnected groups possible"
+            print *,"No unconnected groups possible"
           else
-            print *,"Disconnected term list (channel ",m,")"
+            print *,"Unconnected term list (channel ",m,")"
             write(6,'(26x,1000(a3,"- ",a3,2x))')
      &      ((symb(i),symb(j),j=1+i,natom),i=1,natom) 
             write(6,'(25x,1000(i3," -",i3,2x))')((i,j,j=1+i,natom),
@@ -412,7 +412,7 @@ c       create pair-pair matrix
           enddo
         enddo
 
-        do cc=1,ndp ! disconnected pairs
+        do cc=1,ndp ! unconnected pairs
           i=discind(cc,1) ! pair 1, atom 1
           j=discind(cc,2) ! pair 1, atom 2
           do k=i+1,natom ! pair 2, atom 1
@@ -459,7 +459,7 @@ c TEST PAIRS
  
         print *
         print *,"Found ",ndiscterm(m)," (",ndisc(m),
-     & ") disconnected terms (groups)"
+     & ") unconnected terms (groups)"
         print *
 
         ENDDO ! nchans
@@ -512,7 +512,7 @@ c       Combine terms to remove from each channel
         print *
         write(6,'(a28,i8,a2,i8,a37)'),"Across all channels, found ",
      &         ndisctermtot,"(",ndisctotal,
-     &         ") common disconnected terms (groups)"
+     &         ") common unconnected terms (groups)"
 !        do ii=1,ndisctermtot
 !          write(6,'(i8,"  (",i8,"):",i9,1000i10)')
 !     &         idisctermtot(ii),ibasis(idisctermtot(ii)),
@@ -521,7 +521,7 @@ c       Combine terms to remove from each channel
         print *
 
       ENDIF ! lreaddisc
-c end remove disconnected terms
+c end remove unconnected terms
 
 cccccccccccccc INTRAMOLECULAR TERMS
       IF (lremintra) THEN
@@ -588,7 +588,7 @@ cccccccccccccc INTRAMOLECULAR TERMS
 
         ENDDO ! nchans
 
-        ! condense idisc into single array, no duplicate terms
+        ! condense iintra into single array, no duplicate terms
         if (nchans.ge.2) then
 !          call combine(iintra(1,:),iintra(2,:),
 !     &                 nintra(1),nintra(2),iintratotal,nintratotal)
