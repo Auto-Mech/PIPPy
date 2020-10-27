@@ -1,0 +1,8 @@
+ai.all  ai.test			# Record 1 - Training and test data files
+650.  -650.			# Record 2 - Range parameter and reference energy for weight func
+4  12000. 4000. 0. -100.	# Record 3 - Number of energy ranges and their values
+5				# Record 4 - Number of atoms
+O O H  N N  			# Record 5 - Atom types
+1 1 2  3 3        		# Record 6 - Atom groups
+F  3 3  1 1			# Record 7 - Read basis?, xi_factor, xi_total, Expansion type, num of fragment channels
+1 1 1  2 2			# Record 8 - Fragment groups for fragment channel 1

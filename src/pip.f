@@ -31,6 +31,7 @@ c
 
       read(5,*)datafit,datatest
       read(5,*)epsilon,vvref
+!      read(5,*)vrange,minvk ! replace above?
       read(5,*)ncut,(cut(j),j=1,ncut)
       call prepot ! more parameters are read in prepot
       ncoef=nncoef

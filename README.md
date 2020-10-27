@@ -13,13 +13,13 @@ Ahren Jasper [ajasper@anl.gov]
 ## Install
 ./compile.sh in autofit/src
 
-For pyfit wrapper input generator:\
+For PIPPy (python wrapper for input generation):\
    Mako Templates module for Python is required\
    see [https://www.makotemplates.org/]
 
 ## Fortran input file
 The Fortran input file contains a series of records, each a single line of input parameters (see example fit.in files)
-Alternatively, input can be formatted in more user-friendly file and converted with accompanying Python wrapper (located in /pyfit)
+Alternatively, input can be formatted in more user-friendly file and converted with accompanying Python wrapper (located in /pippy)
 Below are listed each record and associated parameters, with data type in parantheses
 
 **Record 1**: DataSets\
