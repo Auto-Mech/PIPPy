@@ -1,0 +1,20 @@
+$training_data
+DataSets              ai.all ai.test
+EnergyUnits           cm-1
+RangeParameter        650.
+RefEnergy            -650.
+NumRanges             4
+EnergyRanges          12000. 4000. 0. -100.
+$end
+
+$functional_form
+NumAtoms              5
+Symbols               O O H  N N
+AtomGroups            1 1 2  3 3
+ReadBasis             F
+FactorOrder           4
+TotalOrder            4
+ExpansionType         2
+NumChannels           1
+FragmentGroups        1 1 1  2 2
+$end

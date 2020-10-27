@@ -317,6 +317,7 @@ c symmetrize
 
         DO m=1,nchans
 
+        print *,"Determining unconnected terms for channel ",m
         ndisc(m)=0
         ndiscterm(m)=0
 
@@ -466,32 +467,36 @@ c TEST PAIRS
 
 c       Combine terms to remove from each channel
         if (nchans.ge.2) then
-!          call combine(idisc(1,:),idisc(2,:),
-!     &                 ndisc(1),ndisc(2),idisctotal,ndisctotal)
-          call union(idisc(1,:),idisc(2,:),
+          call combine(idisc(1,:),idisc(2,:),
      &                 ndisc(1),ndisc(2),itmp,ntmp)
+!          call union(idisc(1,:),idisc(2,:),
+!     &                 ndisc(1),ndisc(2),itmp,ntmp)
           ndisctotal=ntmp
           do i=1,ndisctotal
             idisctotal(i)=itmp(i)
           enddo
-          call union(idiscterm(1,:),idiscterm(2,:),
+          call combine(idiscterm(1,:),idiscterm(2,:),
      &           ndiscterm(1),ndiscterm(2),itmp2,ntmp2)
+!          call union(idiscterm(1,:),idiscterm(2,:),
+!     &           ndiscterm(1),ndiscterm(2),itmp2,ntmp2)
           ndisctermtot=ntmp2
           do i=1,ndisctermtot
             idisctermtot(i)=itmp2(i)
           enddo
           if (nchans.ge.3) then
             DO m=1,nchans
-!            call combine(idisctotal,idisc(m,:),
-!     &                   ndisctotal,ndisc(m),itmp,ntmp)
-              call union(idisctotal,idisc(m,:),
+              call combine(idisctotal,idisc(m,:),
      &                   ndisctotal,ndisc(m),itmp,ntmp)
+!              call union(idisctotal,idisc(m,:),
+!     &                   ndisctotal,ndisc(m),itmp,ntmp)
               ndisctotal=ntmp
               do i=1,ndisctotal
                 idisctotal(i)=itmp(i)
               enddo
-              call union(idisctermtot,idiscterm(m,:),
+              call combine(idisctermtot,idiscterm(m,:),
      &                   ndisctermtot,ndiscterm(m),itmp2,ntmp2)
+!              call union(idisctermtot,idiscterm(m,:),
+!     &                   ndisctermtot,ndiscterm(m),itmp2,ntmp2)
               ndisctermtot=ntmp2
               do i=1,ndisctermtot
                 idisctermtot(i)=itmp2(i)
@@ -528,10 +533,11 @@ cccccccccccccc INTRAMOLECULAR TERMS
 
         DO m=1,nchans
 
+        print *,"Determining intramolecular-only terms for channel ",m
         nintra(m)=0
         nintraterm(m)=0
 
-        print *,'Intramolecular-only term list'
+        print *,'Intramolecular-only term list (channel',m,')'
         write(6,'(26x,1000(a3,"- ",a3,2x))')
      &   ((symb(i),symb(j),j=1+i,natom),i=1,natom) 
         write(6,'(25x,1000(i3," -",i3,2x))')((i,j,j=1+i,natom),
@@ -591,13 +597,15 @@ cccccccccccccc INTRAMOLECULAR TERMS
         ! condense iintra into single array, no duplicate terms
         if (nchans.ge.2) then
 !          call combine(iintra(1,:),iintra(2,:),
-!     &                 nintra(1),nintra(2),iintratotal,nintratotal)
+!     &                 nintra(1),nintra(2),itmp3,ntmp3)
           call union(iintra(1,:),iintra(2,:),
      &                 nintra(1),nintra(2),itmp3,ntmp3)
           nintratotal=ntmp3
           do i=1,nintratotal
             iintratotal(i)=itmp3(i)
           enddo
+!          call combine(iintraterm(1,:),iintraterm(2,:),
+!     &               nintraterm(1),nintraterm(2),itmp4,ntmp4)
           call union(iintraterm(1,:),iintraterm(2,:),
      &               nintraterm(1),nintraterm(2),itmp4,ntmp4)
           nintratermtot=ntmp4
@@ -607,13 +615,15 @@ cccccccccccccc INTRAMOLECULAR TERMS
           if (nchans.ge.3) then
             DO m=1,nchans
 !              call combine(iintratotal,iintra(m,:),
-!     &                   nintratotal,nintra(m),itmp,ntmp)
+!     &                   nintratotal,nintra(m),itmp3,ntmp3)
               call union(iintratotal,iintra(m,:),
      &                   nintratotal,nintra(m),itmp3,ntmp3)
               nintratotal=ntmp3
               do i=1,nintratotal
                 iintratotal(i)=itmp3(i)
               enddo
+!              call combine(iintratermtot,iintraterm(m,:),
+!     &                   nintratermtot,nintraterm(m),itmp4,ntmp4)
               call union(iintratermtot,iintraterm(m,:),
      &                   nintratermtot,nintraterm(m),itmp4,ntmp4)
               nintratermtot=ntmp4
