@@ -30,161 +30,48 @@ INPUT_REQUIRED_SECTIONS = [
 ]
 
 TD_SUPPORTED_KEYWORDS = [
-    'EnergyRanges',
-    'EnergyWeights',
-    'Epsilon',
-    'NumBatches',
-    'BatchZeroes',
-    'BatchWeights',
     'DataSets',
     'EnergyUnits',
+    'RangeParameter',
+    'RefEnergy',
+    'NumRanges',
+    'EnergyRanges',
 ]
 FF_SUPPORTED_KEYWORDS = [
     'NumAtoms',
     'Symbols', 
     'AtomGroups',
-    'TotalOrder',
-    'FactorOrder',
     'ReadBasis',
-    'RemoveTerms',
-    'MolecularGroups',
+    'FactorOrder',
+    'TotalOrder',
+    'ExpansionType',
+    'NumChannels',
+    'FragmentGroups',
 ]
 
 TD_REQUIRED_KEYWORDS = [
-    'EnergyRanges',
-    'Epsilon',
-    'NumBatches',
-    'BatchZeroes',
     'DataSets',
     'EnergyUnits',
+    'RangeParameter',
+    'RefEnergy',
+    'NumRanges',
+    'EnergyRanges',
 ]
 FF_REQUIRED_KEYWORDS = [
     'NumAtoms',
-    'Symbols',
+    'Symbols', 
     'AtomGroups',
-    'TotalOrder',
-    'FactorOrder',
     'ReadBasis',
-    'RemoveTerms',
+    'FactorOrder',
+    'TotalOrder',
+    'ExpansionType',
+    'NumChannels',
+    'FragmentGroups',
 ]
 
-# Read the targets and baths sections and species
-
-
-def read_energy_ranges(input_string):
-    """ obtain 
-    """
-
-    pattern = ('EnergyRanges' +
-               one_or_more(SPACE) + capturing(FLOAT) + # cut0
-               one_or_more(SPACE) + capturing(FLOAT) + # cut1
-               one_or_more(SPACE) + capturing(FLOAT) + # cut2
-               one_or_more(SPACE) + capturing(FLOAT))  # cut3
-    block = _get_training_data_section(input_string)
-
-    keyword = first_capture(pattern, block)
-
-    assert keyword is not None
-
-    out='  '.join(keyword)
-#    print(keyword)
-#    print(out)
-
-    return out
-
-
-def read_energy_weights(input_string):
-    """ 
-    """
-
-    pattern = ('EnergyWeights' +
-               one_or_more(SPACE) + capturing(FLOAT) + # weight0
-               one_or_more(SPACE) + capturing(FLOAT) + # weight1
-               one_or_more(SPACE) + capturing(FLOAT) + # weight2
-               one_or_more(SPACE) + capturing(FLOAT))  # weight3
-    block = _get_training_data_section(input_string)
-
-    keyword = first_capture(pattern, block)
-
-    assert keyword is not None
-    out='  '.join(keyword)
-
-    return out
-
-
-def read_epsilon(input_string):
-    """ 
-    """
-
-    pattern = ('Epsilon' +
-               one_or_more(SPACE) + 
-               capturing(FLOAT))
-    block = _get_training_data_section(input_string)
-
-    keyword = first_capture(pattern, block)
-
-    assert keyword is not None
-#    keyword = int(keyword)
-
-    return keyword
-
-
-def read_num_batches(input_string):
-    """ 
-    """
-
-    pattern = ('NumBatches' +
-               one_or_more(SPACE) + capturing(one_or_more(NONSPACE)))
-    block = _get_training_data_section(input_string)
-
-    keyword = first_capture(pattern, block)
-
-    assert keyword is not None
-    out='  '.join(keyword)
-
-    return out
-
-
-def read_batch_zeroes(input_string,num_batches):
-    """ 
-    """
-    batches_line = _get_floats_line(input_string,'BatchZeroes',num_batches)
-
-    assert batches_line is not None
-    if batches_line is None:
-        tmp = []
-        for _ in range(int(num_batches)):
-            tmp.append(one_or_more(SPACE))
-            tmp.append('0')
-
-        print("No BatchZeroes found, setting to "+tmp)
-        out = tmp
-    else:
-        out=' '.join(batches_line)
-
-    return out
-
-
-def read_batch_weights(input_string,num_batches):
-    """ 
-    """
-    batches_line = _get_floats_line(input_string,'BatchWeights',num_batches)
-
-    assert batches_line is not None
-    if batches_line is None:
-        tmp = []
-        for _ in range(int(num_batches)):
-            tmp.append(one_or_more(SPACE))
-            tmp.append('1')
-
-        print("No BatchWeights found, setting to "+tmp)
-        out = tmp
-    else:
-        out=' '.join(batches_line)
-
-    return out
-
-def _get_floats_line(input_string,check_string,num_batches):
+#### GENERAL FUNCTIONS
+## Read in a line of floats of varying length
+def _get_float_line(input_string,check_string,num_batches):
     """ grabs the line of text containing num batches
     """
     tmp = []
@@ -200,12 +87,46 @@ def _get_floats_line(input_string,check_string,num_batches):
 
     return section
 
+## Read in a line of integer of varying length
+def _get_integer_line(input_string,check_string,num_batches):
+    """ grabs the line of text containing num batches
+    """
+    tmp = []
+    for _ in range(int(num_batches)):
+        tmp.append(one_or_more(SPACE))
+        tmp.append(capturing(INTEGER))
 
+    pattern = (str(check_string) + ''.join(tmp)
+        )
+    section = first_capture(pattern, input_string)
+
+    assert section is not None
+
+    return section
+
+## Read in a line of character strings of varying length
+def _get_string_line(input_string,check_string,num_batches):
+    """ grabs the line of text containing num batches
+    """
+    tmp = []
+    for _ in range(int(num_batches)):
+        tmp.append(one_or_more(SPACE))
+        tmp.append(capturing(NONSPACE))
+
+    pattern = (str(check_string) + ''.join(tmp)
+        )
+    section = first_capture(pattern, input_string)
+
+    assert section is not None
+
+    return section
+
+#### TRAINING DATA FUNCTIONS
+## Data Sets
 def read_data_sets(input_string):
     """ 
     """
     pattern = ('DataSets' +
-               one_or_more(SPACE) + capturing(one_or_more(NONSPACE)) + 
                one_or_more(SPACE) + capturing(one_or_more(NONSPACE)) + 
                one_or_more(SPACE) + capturing(one_or_more(NONSPACE)))  
     block = _get_training_data_section(input_string)
@@ -217,7 +138,7 @@ def read_data_sets(input_string):
 
     return out
 
-
+## Energy Units
 def read_energy_units(input_string):
     """ 
     """
@@ -232,7 +153,65 @@ def read_energy_units(input_string):
 
     return keyword
 
+## Range Parameter
+def read_range_parameter(input_string):
+    """ 
+    """
 
+    pattern = ('RangeParameter' +
+               one_or_more(SPACE) + 
+               capturing(FLOAT))
+    block = _get_training_data_section(input_string)
+
+    keyword = first_capture(pattern, block)
+
+    assert keyword is not None
+
+    return keyword
+
+## Reference Energy
+def read_ref_energy(input_string):
+    """ 
+    """
+
+    pattern = ('RefEnergy' +
+               one_or_more(SPACE) + 
+               capturing(FLOAT))
+    block = _get_training_data_section(input_string)
+
+    keyword = first_capture(pattern, block)
+
+    assert keyword is not None
+
+    return keyword
+
+## Number of Energy Ranges
+def read_num_ranges(input_string):
+    """ read in number of energy ranges
+    """
+
+    pattern = ('NumRanges' +
+               one_or_more(SPACE) + capturing(INTEGER))
+    block = _get_training_data_section(input_string)
+
+    keyword = first_capture(pattern, block)
+
+    assert keyword is not None
+
+    return keyword
+
+## Energy Ranges
+def read_energy_ranges(input_string,num_ranges):
+    """ obtain 
+    """
+    inp_line = _get_float_line(input_string,'EnergyRanges',num_ranges)
+
+    assert inp_line is not None
+    out=' '.join(inp_line)
+
+    return out
+
+## Read Training Data Section 
 def _get_training_data_section(input_string):
     """ grabs the section of text containing all of the job keywords
         for training data
@@ -246,7 +225,8 @@ def _get_training_data_section(input_string):
 
     return section
 
-#FUNCTIONAL FORM FUNCTIONS
+#### FUNCTIONAL FORM FUNCTIONS
+## Number of Atoms
 def read_num_atoms(input_string):
     """ 
     """
@@ -261,77 +241,63 @@ def read_num_atoms(input_string):
 
     return keyword
 
-
+## Atom Symbols
 def read_symbols(input_string,natoms):
     """ 
     """
 
-    symb_line = _get_symbols_line(input_string,natoms)
+    symb_line = _get_string_line(input_string,'Symbols',natoms)
+#    symb_line = _get_symbols_line(input_string,natoms)
 
     assert symb_line is not None
     out=' '.join(symb_line)
 
     return out
 
-def _get_symbols_line(input_string,natoms):
-    """ grabs the line of text containing atom symbols
-    """
-    tmp = []
-    for _ in range(int(natoms)):
-        tmp.append(one_or_more(SPACE))
-        tmp.append(capturing(NONSPACE))
+#def _get_symbols_line(input_string,natoms):
+#    """ grabs the line of text containing atom symbols
+#    """
+#    tmp = []
+#    for _ in range(int(natoms)):
+#        tmp.append(one_or_more(SPACE))
+#        tmp.append(capturing(NONSPACE))
+#
+#    pattern = ('Symbols' + ''.join(tmp)
+#        )
+#    section = first_capture(pattern, input_string)
+#
+#    assert section is not None
+#
+#    return section
 
-    pattern = ('Symbols' + ''.join(tmp)
-        )
-    section = first_capture(pattern, input_string)
-
-    assert section is not None
-
-    return section
-
-
-def read_groups(input_string,natoms):
+## Atom Groups
+def read_atom_groups(input_string,natoms):
     """ 
     """
 
-    groups_line = _get_groups_line(input_string,natoms)
+    groups_line = _get_integer_line(input_string,'AtomGroups',natoms)
 
     assert groups_line is not None
     out=' '.join(groups_line)
 
     return out
 
-def _get_groups_line(input_string,natoms):
-    """ grabs the line of text containing atom symbols
-    """
-    tmp = []
-    for _ in range(int(natoms)):
-        tmp.append(one_or_more(SPACE))
-        tmp.append(capturing(INTEGER))
+#def _get_groups_line(input_string,natoms):
+#    """ grabs the line of text containing atom symbols
+#    """
+#    tmp = []
+#    for _ in range(int(natoms)):
+#        tmp.append(one_or_more(SPACE))
+#        tmp.append(capturing(INTEGER))
+#
+#    pattern = ('AtomGroups' + ''.join(tmp))
+#    section = first_capture(pattern, input_string)
+#
+#    assert section is not None
+#
+#    return section
 
-    pattern = ('AtomGroups' + ''.join(tmp))
-    section = first_capture(pattern, input_string)
-
-    assert section is not None
-
-    return section
-
-
-def read_total_order(input_string):
-    """ 
-    """
-
-    pattern = ('TotalOrder' +
-               one_or_more(SPACE) + capturing(INTEGER))
-    block = _get_functional_form_section(input_string)
-
-    keyword = first_capture(pattern, block)
-
-    assert keyword is not None
-
-    return keyword
-
-
+## Factor Order
 def read_factor_order(input_string):
     """ 
     """
@@ -346,7 +312,22 @@ def read_factor_order(input_string):
 
     return keyword
 
+## Total Order
+def read_total_order(input_string):
+    """ 
+    """
 
+    pattern = ('TotalOrder' +
+               one_or_more(SPACE) + capturing(INTEGER))
+    block = _get_functional_form_section(input_string)
+
+    keyword = first_capture(pattern, block)
+
+    assert keyword is not None
+
+    return keyword
+
+## Read Basis Flag
 def read_read_basis(input_string):
     """ 
     """
@@ -361,50 +342,63 @@ def read_read_basis(input_string):
 
     return keyword
 
-
-def read_remove_terms(input_string):
+## Expansion Type
+def read_exp_type(input_string):
     """ 
     """
 
-    pattern = ('RemoveTerms' +
-               one_or_more(SPACE) + capturing(LOGICAL) +
-               one_or_more(SPACE) + capturing(LOGICAL))
+    pattern = ('ExpansionType' +
+               one_or_more(SPACE) + capturing(INTEGER))
     block = _get_functional_form_section(input_string)
 
     keyword = first_capture(pattern, block)
 
     assert keyword is not None
-    out='  '.join(keyword)
 
-    return out
+    return keyword
 
-
-def read_molecular_groups(input_string,natoms):
+## Number of Fragment Channels
+def read_num_channels(input_string):
     """ 
     """
 
-    groups_line = _get_molec_groups_line(input_string,natoms)
+    pattern = ('NumChannels' +
+               one_or_more(SPACE) + capturing(INTEGER))
+    block = _get_functional_form_section(input_string)
 
-    assert groups_line is not None
-    out=' '.join(groups_line)
+    keyword = first_capture(pattern, block)
+
+    assert keyword is not None
+
+    return keyword
+
+## Fragment Groups
+def read_fragment_groups(input_string,natoms,num_channels):
+    """ 
+    """
+
+    inp_line = _get_integer_line(input_string,'FragmentGroups',natoms)
+#    groups_line = _get_molec_groups_line(input_string,natoms)
+
+    assert inp_line is not None
+    out=' '.join(inp_line)
 
     return out
 
-def _get_molec_groups_line(input_string,natoms):
-    """ grabs the line of text containing atom symbols
-    """
-    tmp = []
-    for _ in range(int(natoms)):
-        tmp.append(one_or_more(SPACE))
-        tmp.append(capturing(INTEGER))
-
-    pattern = ('MolecularGroups' + ''.join(tmp))
-    section = first_capture(pattern, input_string)
-
-    assert section is not None
-
-    return section
-
+#def _get_molec_groups_line(input_string,natoms):
+#    """ grabs the line of text containing atom symbols
+#    """
+#    tmp = []
+#    for _ in range(int(natoms)):
+#        tmp.append(one_or_more(SPACE))
+#        tmp.append(capturing(INTEGER))
+#
+#    pattern = ('MolecularGroups' + ''.join(tmp))
+#    section = first_capture(pattern, input_string)
+#
+#    assert section is not None
+#
+#    return section
 
 def _get_functional_form_section(input_string):
     """ grabs the section of text containing all of the job keywords

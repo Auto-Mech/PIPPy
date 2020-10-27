@@ -1,10 +1,10 @@
 $training_data
 DataSets              ai.all ai.test
-RangeParamater        650.
-ReferenceEnergy       -650.
+EnergyUnits           cm-1
+RangeParameter        650.
+RefEnergy            -650.
 NumRanges             4
 EnergyRanges          12000. 4000. 0. -100.
-EnergyUnits           cm-1
 $end
 
 $functional_form
@@ -12,9 +12,9 @@ NumAtoms              5
 Symbols               O O H  N N
 AtomGroups            1 1 2  3 3
 ReadBasis             F
-TotalOrder            4
 FactorOrder           4
+TotalOrder            4
 ExpansionType         2
-NumberChannels        1
-MolecularGroups       1 1 1  2 2
+NumChannels           1
+FragmentGroups        1 1 1  2 2
 $end

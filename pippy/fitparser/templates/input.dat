@@ -1,21 +1,20 @@
 $training_data
-EnergyRanges          250. 100. 500. 20.
-EnergyWeights         0.   1.   1.   5.
-Epsilon               50.
-NumBatches            3
-BatchZeroes           15.6  0.0  21.9
-BatchWeights          1. 1. 1.
-DataSets              ai.all ai.mep ai.dat
-EnergyUnits           kcal/mol
+DataSets              ai.all ai.test
+EnergyUnits           cm-1
+RangeParamater        650.
+RefEnergy            -650.
+NumRanges             4
+EnergyRanges          12000. 4000. 0. -100.
 $end
 
 $functional_form
-NumAtoms              4
-Symbols               O H H H
-AtomGroups            1 2 2 2
-TotalOrder            4
-FactorOrder           4
+NumAtoms              5
+Symbols               O O H  N N
+AtomGroups            1 1 2  3 3
 ReadBasis             F
-RemoveTerms           T F
-MolecularGroups       1 1 2 2
+FactorOrder           4
+TotalOrder            4
+ExpansionType         2
+NumChannels           1
+FragmentGroups        1 1 1  2 2
 $end
