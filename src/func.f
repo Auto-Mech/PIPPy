@@ -15,7 +15,7 @@
      &  basis(maxterm),ibasis(maxterm),r(maxpair),
      &  dbasisdr(maxterm,maxpair),rrr(maxdata,maxpair),
      &  index(maxatom,maxatom),ix(maxperm,maxpair),
-     &  dpcheck(maxpair),discind(maxatom,maxatom),
+     &  dpcheck(maxpair),discind(maxatom,2),
      &  pairpair(maxpair,maxpair),npow(maxpair),dgroup(maxatom,maxatom),
      &  ndg(maxatom),ndisc(maxatom),
      &  ndiscterm(maxatom),idisctotal(maxterm),idisctermtot(maxterm),
