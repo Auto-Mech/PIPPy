@@ -15,7 +15,7 @@
      &  basis(maxterm),ibasis(maxterm),r(maxpair),
      &  dbasisdr(maxterm,maxpair),rrr(maxdata,maxpair),
      &  index(maxatom,maxatom),ix(maxperm,maxpair),
-     &  dpcheck(maxpair),discind(maxatom,2),
+     &  dpcheck(maxpair),discind(maxpair,2),
      &  pairpair(maxpair,maxpair),npow(maxpair),dgroup(maxatom,maxatom),
      &  ndg(maxatom),ndisc(maxatom),
      &  ndiscterm(maxatom),idisctotal(maxterm),idisctermtot(maxterm),
@@ -31,20 +31,16 @@
       save npairs,nterms,ind,ibasis
 
       read(5,*)natom
-      if (natom.gt.maxatom) then
-        print *,"natom (",natom,") > maxatom (",maxatom,")"
-        stop
-      endif
 
       read(5,*)(symb(k),k=1,natom)
       read(5,*)(iagroup(k),k=1,natom)
-      read(5,*)lreadbasis,ipow,ipowt,imode,nchans
+      read(5,*)lreadbasis,ipow,ipowt,imode
       write(6,'(100("*"))')
       write(6,*)
       if (lreadbasis) then
-      write(6,*)"Reading the PIP",ipow,ipowt," basis"
+        write(6,*)"Reading the PIP",ipow,ipowt," basis"
       else
-      write(6,*)"Generating a PIP",ipow,ipowt,
+        write(6,*)"Generating a PIP",ipow,ipowt,
      & " basis and writing it to basis.dat"
       endif
       if (imode.eq.0) then     ! use all terms
@@ -79,14 +75,15 @@
       write(6,*)
 
       if (lreaddisc.or.lremintra.or.linteronly) then
-        do i=1,nchans
+        read(5,*)nchan
+        do i=1,nchan
           read(5,*)(dgroup(i,k),k=1,natom)
         enddo
       endif
       if (linteronly) then
         natom1=0        ! bimolecular only
         natom2=0
-        do i=1,nchans
+        do i=1,nchan
         do j=1,natom
           if (dgroup(i,j).eq.1) natom1=natom1+1
           if (dgroup(i,j).eq.2) natom2=natom2+1
@@ -113,12 +110,17 @@
       write(6,'(a8,100i5)')"Index",(i,i=1,natom)
       write(6,'(a8,100i5)')"Group",(iagroup(i),i=1,natom)
       if (lreaddisc.or.lremintra.or.linteronly) then
-      write(6,'(3x,a)')"Fragment Channels"
-c      do loop over channels
-      do i=1,nchans
-        write(6,'(2x,i5,a,100i5)')i,":",(dgroup(i,j),j=1,natom)
-      enddo
-c      end do loop over channels
+        write(6,'(3x,a)')"Fragment Channels"
+c       do loop over channels
+        do i=1,nchan
+          write(6,'(2x,i5,a,100i5)')i,":",(dgroup(i,j),j=1,natom)
+        enddo
+c       end do loop over channels
+      endif
+
+      if (natom.gt.maxatom) then
+        print *,"natom (",natom,") > maxatom (",maxatom,")"
+        stop
       endif
 
 ccc GENERATE BASIS ccc
@@ -167,17 +169,14 @@ c     generate atom permutation lists
       ntmp=1
       do i=1,ngroup
         idum(i)=nperm0(i)
-c      print *,"Group ",i," has ",(nperm1(i)-nperm0(i)+1)," permutations"
         ntmp=ntmp*(nperm1(i)-nperm0(i)+1)
       enddo
-c      print *,"For a total of ",ntmp," permutations"
 
       npermute=0
       do while (.true.)
         npermute=npermute+1
         if (npermute.gt.maxperm) then
           print *,"npermute (",npermute,") > maxperm (",maxperm,")"
-          print *,"NOTE: maxperm needs to be at least npermute + 1"
           stop
         endif
 
@@ -206,7 +205,7 @@ c      print *,"For a total of ",ntmp," permutations"
       print *
       print *,'Atom permutations = ',npermute
       do i=1,min(npermute,100) ! prints only first 100 permutations
-       write(6,'(i7,a,1000i5)')i,":",(iatom(i,j),j=1,natom)
+        write(6,'(i7,a,1000i5)')i,":",(iatom(i,j),j=1,natom)
       enddo
       if (npermute.gt.100) write(6,*)" ** Truncating list **"
       write(6,*)
@@ -224,6 +223,7 @@ c      print *,"For a total of ",ntmp," permutations"
         enddo
       enddo
 
+      if (ldebug) then ! DEBUG OUTPUT
       write(6,*)"Pair permutation list"
       if (.not.linteronly) then
       write(6,'(14x,1000(a3,"- ",a3,2x))')
@@ -236,6 +236,8 @@ c      print *,"For a total of ",ntmp," permutations"
       write(6,'(13x,1000(i3," -",i3,2x))')((i,j,j=1+natom1,natom),
      &   i=1,natom1)
       endif
+      endif ! DEBUG OUTPUT
+
       do ii=1,npermute
         iix=0
         a=natom
@@ -248,14 +250,15 @@ c      print *,"For a total of ",ntmp," permutations"
             ix(ii,iix)=index(iatom(ii,i),iatom(ii,j))
           enddo
         enddo
-        if (ii.le.100) write(6,'(i7,a,1000i10)')
+        if (ii.le.100.and.ldebug) write(6,'(i7,a,1000i10)')
      &     ii,":",(ix(ii,iix),iix=1,npairs)
       enddo
       if (npermute.gt.100) write(6,*)" ** Truncating list **"
-      write(6,*)
+      if (ldebug) write(6,*)
 
 c generate terms using individual power constraints
       ii=1
+      indtot=0
       do i=1,npairs
         ind(ii,i)=0
       enddo
@@ -266,6 +269,7 @@ c generate terms using individual power constraints
           stop
         endif
 
+!        indord(ii-1)=indtot
         do i=1,npairs
           ind(ii,i)=ind(ii-1,i)
         enddo
@@ -292,14 +296,19 @@ c symmetrize
       DO ii=1,nterms
         if (mod(ii,100).eq.0) print *,"  step ",ii," of ",nterms
         ifail=0
-        do i=1,ii-1
+        do i=ii-1,1,-1
+!          if (indord(ii).eq.indord(i)) then
           do j=1,npermute
             ifail=1
             do k=1,npairs
-              if (ind(i,k).ne.ind(ii,ix(j,k))) ifail=0
+              if (ind(i,k).ne.ind(ii,ix(j,k))) then
+                ifail=0
+                exit
+              endif
             enddo
             if (ifail.eq.1) go to 1010
           enddo
+!          endif
         enddo
  1010 continue
         if (ifail.eq.0) then
@@ -313,9 +322,10 @@ c symmetrize
 
       nncoef=nbasis
 
-      IF (lreaddisc) THEN
+c Remove unconnected and intramolecular only terms if required
+      IF (lnodisc.or.lnointra) THEN
 
-        DO m=1,nchans
+        DO m=1,nchan
 
         print *,"Determining unconnected terms for channel ",m
         ndisc(m)=0
@@ -338,7 +348,8 @@ c symmetrize
           if (dgroup(m,i).gt.dgtot) dgtot=dgroup(m,i)
         enddo
 
-ccc LOOP OVER MOLECULAR GROUPS
+ccc LOOP OVER FRAGMENT GROUPS
+        loopcheck=0
         DO dg1=1,dgtot-1
         if (ndg(dg1).le.1) then
           print *,"No unconnected groups possible"
@@ -347,22 +358,28 @@ ccc LOOP OVER MOLECULAR GROUPS
           if (ndg(dg2).le.1) then
             print *,"No unconnected groups possible"
           else
+            if (loopcheck.eq.0) then
             print *,"Unconnected term list (channel ",m,")"
             write(6,'(26x,1000(a3,"- ",a3,2x))')
      &      ((symb(i),symb(j),j=1+i,natom),i=1,natom) 
             write(6,'(25x,1000(i3," -",i3,2x))')((i,j,j=1+i,natom),
      &            i=1,natom)
+            endif
+            loopcheck=1
             do i=1,natom
               do j=i+1,natom
                 ag=0
                 dg=0
-                if (iagroup(i).eq.iagroup(j)) ag=1
+                ! Check if pair already tested in 2nd atom loop below
+                if (dpcheck(index(i,j)).eq.1) goto 200
+!                if (iagroup(i).eq.iagroup(j)) ag=1
                 if (dgroup(m,i).eq.dgroup(m,j)) dg=1
                 if (dg.eq.1) then ! if dg = 1, all good
                   ndp=ndp+1
                   dpcheck(index(i,j))=1
                   discind(ndp,1)=i
                   discind(ndp,2)=j
+                  IF (nchan.ge.2) THEN ! for reactive systems
                   do k=1,natom ! inner loop over atoms, find matching AGs
                     if (iagroup(k).eq.iagroup(i)) then
                       do l=k+1,natom
@@ -388,12 +405,14 @@ ccc LOOP OVER MOLECULAR GROUPS
                       enddo
                     endif
                   enddo
-                elseif (ag.eq.1) then ! dg = 0, ag = 1, also all good
-                  ndp=ndp+1
-                  dpcheck(index(i,j))=1
-                  discind(ndp,1)=i
-                  discind(ndp,2)=j
+                  ENDIF
+!                elseif (ag.eq.1) then ! dg = 0, ag = 1, also all good
+!                  ndp=ndp+1
+!                  dpcheck(index(i,j))=1
+!                  discind(ndp,1)=i
+!                  discind(ndp,2)=j
                 endif
+  200 continue
               enddo
             enddo
           endif
@@ -405,7 +424,7 @@ ccc LOOP OVER MOLECULAR GROUPS
 !     &   (dpcheck(i),i=1,npairs)
       ! should give dpcheck(i)=1 for possible pairs
 c
-c       create pair-pair matrix
+c CREATE PAIR-PAIR MATRIX
         do i=1,npairs
           npow(i)=0
           do j=1,npairs
@@ -463,10 +482,10 @@ c TEST PAIRS
      & ") unconnected terms (groups)"
         print *
 
-        ENDDO ! nchans
+        ENDDO ! nchan
 
 c       Combine terms to remove from each channel
-        if (nchans.ge.2) then
+        if (nchan.ge.2) then
           call combine(idisc(1,:),idisc(2,:),
      &                 ndisc(1),ndisc(2),itmp,ntmp)
 !          call union(idisc(1,:),idisc(2,:),
@@ -483,8 +502,8 @@ c       Combine terms to remove from each channel
           do i=1,ndisctermtot
             idisctermtot(i)=itmp2(i)
           enddo
-          if (nchans.ge.3) then
-            DO m=1,nchans
+          if (nchan.ge.3) then
+            DO m=1,nchan
               call combine(idisctotal,idisc(m,:),
      &                   ndisctotal,ndisc(m),itmp,ntmp)
 !              call union(idisctotal,idisc(m,:),
@@ -501,7 +520,7 @@ c       Combine terms to remove from each channel
               do i=1,ndisctermtot
                 idisctermtot(i)=itmp2(i)
               enddo
-            ENDDO ! nchans
+            ENDDO ! nchan
           endif
         else ! single fragment channel
           ndisctotal=ndisc(1)
@@ -531,7 +550,7 @@ c end remove unconnected terms
 cccccccccccccc INTRAMOLECULAR TERMS
       IF (lremintra) THEN
 
-        DO m=1,nchans
+        DO m=1,nchan
 
         print *,"Determining intramolecular-only terms for channel ",m
         nintra(m)=0
@@ -592,10 +611,10 @@ cccccccccccccc INTRAMOLECULAR TERMS
      &   ") intramolecular-only terms (groups)"
         print *
 
-        ENDDO ! nchans
+        ENDDO ! nchan
 
         ! condense iintra into single array, no duplicate terms
-        if (nchans.ge.2) then
+        if (nchan.ge.2) then
 !          call combine(iintra(1,:),iintra(2,:),
 !     &                 nintra(1),nintra(2),itmp3,ntmp3)
           call union(iintra(1,:),iintra(2,:),
@@ -612,8 +631,8 @@ cccccccccccccc INTRAMOLECULAR TERMS
           do i=1,nintratermtot
             iintratermtot(i)=itmp4(i)
           enddo
-          if (nchans.ge.3) then
-            DO m=1,nchans
+          if (nchan.ge.3) then
+            DO m=1,nchan
 !              call combine(iintratotal,iintra(m,:),
 !     &                   nintratotal,nintra(m),itmp3,ntmp3)
               call union(iintratotal,iintra(m,:),
@@ -630,7 +649,7 @@ cccccccccccccc INTRAMOLECULAR TERMS
               do i=1,nintratermtot
                 iintratermtot(i)=itmp4(i)
               enddo
-            ENDDO ! nchans
+            ENDDO ! nchan
           endif
         else ! single channel
           nintratotal=nintra(1)
