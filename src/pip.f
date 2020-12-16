@@ -7,8 +7,6 @@ c
       dimension basis(maxterm)
 
       dimension vv(maxdata),rrr(maxdata,maxpair)
-      dimension rcom2(maxdata),xprint(50,20)
-      dimension rcom(maxdata)
       dimension cut(100),nc(100),na(100),wc(100),wa(100),
      &          erra(100),errc(100)
       dimension x(maxatom),y(maxatom),z(maxatom)
@@ -31,13 +29,14 @@ c
 
       read(5,*)datafit,datatest
       read(5,*)epsilon,vvref
-!      read(5,*)vrange,minvk ! replace above?
       read(5,*)ncut,(cut(j),j=1,ncut)
       call prepot ! more parameters are read in prepot
       ncoef=nncoef
 
+      dofit=0
+      IF (dofit.eq.1) THEN
       open(7,file=datafit)
-      read(7,*)ndat2,natom
+      read(7,*)ndat2
       if (ndat2.gt.maxdata) then
         write(6,*)"ndat = ",ndat2," while maxdata = ",maxdata
         stop
@@ -46,7 +45,7 @@ c
       ndat=0
       vvmin=1.d50
       do i=1,ndat2
-        read(7,*)
+        read(7,*)natom
         read(7,*)iz,dum,vvx
         do j=1,natom
           read(7,*)dum,x(j),y(j),z(j)
@@ -81,8 +80,6 @@ c
       write(6,*)"Weight function parameters: epsilon = ",
      & epsilon," and vref = ",vvref
       write(6,*)
-      write(6,'(34("*  "))')
-      write(6,*)
 
       call svdfit(vv,sig,ndat,coef,ncoef,ndat,ncoef)
 
@@ -99,15 +96,12 @@ c
       open(56,file="coef.dat")
       do i=1,ndat
         call funcs1(i,basis,ncoef) 
-c      write(88,'(i10,1000f15.5)')i,1./sig(i),vv(i),(basis(j),j=1,ncoef)
+c      write(88,'(i10,10000e18.6)')i,1./sig(i),vv(i),(basis(j),j=1,ncoef)
         vvx=0.d0
         do j=1,ncoef
           vvx=vvx+coef(j)*basis(j)
-c          if (i.eq.1) write(6,'(a,i5,a,e20.10)')
-c     &    '       coef(',j,') = ',coef(j)
           if (i.eq.1) write(56,'(i5,e20.10)')j,coef(j)
         enddo
-c        if (i.le.100) write(6,'(i7,99e20.10)')i,vvx,vv(i),1./sig(i)
         do k=1,ncut
         if (vv(i).lt.cut(k)) then
           erra(k)=erra(k)+(vvx-vv(i))**2/sig(i)**2
@@ -154,66 +148,67 @@ c        if (i.le.100) write(6,'(i7,99e20.10)')i,vvx,vv(i),1./sig(i)
 c     test set
       open(7,file=datatest)
       rewind(7)
-      read(7,*)ndat2,natom
-c      write(6,*)'Reading ',ndat2,' data '
+      read(7,*)ndat2
       if (ndat2.gt.maxdata) then
           write(6,*)"ndat = ",ndat2," while maxdata = ",maxdata
           stop
       endif
   
-      ndat=0
-      do i=1,ndat2
-        read(7,*)
-        read(7,*)iz,dum,vvx
-        do j=1,natom
-          read(7,*)dum,x(j),y(j),z(j)
-        enddo
+        ndat=0
+        do i=1,ndat2
+          read(7,*)
+          read(7,*)iz,dum,vvx
+          do j=1,natom
+            read(7,*)dum,x(j),y(j),z(j)
+          enddo
 
-        xcut=cut(1) 
-        if (ncut.gt.1) xcut=cut(2) 
-        if (vvx.lt.cut2) then
-          ndat=ndat+1
-          vv(ndat)=vvx
-          ii=0
-          a=natom
-          if (linteronly) a=natom1
-          do j=1,a
-            b=j
-            if (linteronly) b=natom1
-            do k=b+1,natom
-              ii=ii+1
-      rrr(ndat,ii)=dsqrt((x(j)-x(k))**2+(y(j)-y(k))**2+(z(j)-z(k))**2)
+          xcut=cut(1) 
+          if (ncut.gt.1) xcut=cut(2) 
+          if (vvx.lt.xcut) then
+            ndat=ndat+1
+            vv(ndat)=vvx
+            ii=0
+            a=natom
+            if (linteronly) a=natom1
+            do j=1,a
+              b=j
+              if (linteronly) b=natom1
+              do k=b+1,natom
+                ii=ii+1
+        rrr(ndat,ii)=dsqrt((x(j)-x(k))**2+(y(j)-y(k))**2+(z(j)-z(k))**2)
+              enddo  
             enddo  
-          enddo  
-       sig(ndat)=1.d0/(epsilon/(dabs(vv(ndat)-vvref)+epsilon))
-        endif
-      enddo  
+         sig(ndat)=1.d0/(epsilon/(dabs(vv(ndat)-vvref)+epsilon))
+          endif
+        enddo  
 
-      err3=0.d0
-      ndat3=0
-      wn=0.d0
-      do i=1,ndat
-        call funcs1(i,basis,ncoef)
-        vvx=0.d0
-        do l=1,ncoef
-          vvx=vvx+coef(l)*basis(l)
+        err3=0.d0
+        ndat3=0
+        wn=0.d0
+        do i=1,ndat
+          call funcs1(i,basis,ncoef)
+          vvx=0.d0
+          do l=1,ncoef
+            vvx=vvx+coef(l)*basis(l)
+          enddo
+          err3=err3+(vvx-vv(i))**2/sig(i)**2
+          wn=wn+1.d0/sig(i)**2
         enddo
-        err3=err3+(vvx-vv(i))**2/sig(i)**2
-        wn=wn+1.d0/sig(i)**2
-      enddo
-      err3=dsqrt(err3/wn)
+        err3=dsqrt(err3/wn)
 
-      write(6,*)
-      write(6,*)"Out of sample test set error: ",err3 
-      write(6,*)
-      write(6,*)"Optimized coefficients written to coef.dat"
-      write(6,*)
-      write(6,'(100("*"))')
+        write(6,*)
+        write(6,*)"Out of sample test set error: ",err3 
+        write(6,*)
+        write(6,*)"Optimized coefficients written to coef.dat"
+        write(6,*)
+        write(6,'(100("*"))')
 
-      ix=2
-      if (ncut.eq.1) ix=1 
-      print *
-      print *,"summary",ncoef,erra(ix),err3
-      print *
+        ix=2
+        if (ncut.eq.1) ix=1 
+        print *
+        print *,"summary",ncoef,erra(ix),err3
+        print *
+
+      endif ! dofit
 
       end
