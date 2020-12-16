@@ -2,6 +2,11 @@
 c
       implicit double precision (a-h,p-z)
 c
+c MPI
+      include 'mpif.h'
+      integer my_id,nprocs,ierr
+      integer status(MPI_STATUS_SIZE)
+
       include 'param.inc'
       dimension coef(maxcoef),sig(maxdata)
       dimension basis(maxterm)
@@ -19,6 +24,16 @@ c
 
       common/foox/rrr,nncoef,natom1,linteronly
 
+ccccc MPI
+      call MPI_INIT(ierr)
+      call MPI_COMM_SIZE(MPI_COMM_WORLD,nprocs,ierr)
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_id,ierr)
+
+!      write(6,"(a, i3)") " MPI current proc: ", my_id
+
+      IF (my_id.eq.0) THEN
+!      write(6,"(a, i3)") " MPI num procs: ", nprocs
+
       write(6,'(100("*"))')
       write(6,*)
       write(6,*)"PIP: A Fortran code for fitting permutationally",
@@ -30,11 +45,24 @@ c
       read(5,*)datafit,datatest
       read(5,*)epsilon,vvref
       read(5,*)ncut,(cut(j),j=1,ncut)
+      ENDIF
+
+      call MPI_Bcast(datafit, 1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_Bcast(datatest,1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_Bcast(epsilon, 1, MPI_DOUBLE_PRECISION, 0,
+     &               MPI_COMM_WORLD, ierr)
+      call MPI_Bcast(vvref, 1, MPI_DOUBLE_PRECISION, 0,
+     &               MPI_COMM_WORLD, ierr)
+      call MPI_Bcast(ncut, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_Bcast(cut, ncut, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+
+      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+
       call prepot ! more parameters are read in prepot
       ncoef=nncoef
 
-      dofit=0
-      IF (dofit.eq.1) THEN
+      IF (my_id.eq.-1) THEN ! Not fitting function for now
+
       open(7,file=datafit)
       read(7,*)ndat2
       if (ndat2.gt.maxdata) then
@@ -72,6 +100,7 @@ c
       enddo
       close(7)
 
+      IF (my_id.eq.0) THEN
       write(6,'(34("*  "))')
       write(6,*)
       write(6,*)"Fitting to the training data in ",datafit
@@ -80,6 +109,7 @@ c
       write(6,*)"Weight function parameters: epsilon = ",
      & epsilon," and vref = ",vvref
       write(6,*)
+      ENDIF
 
       call svdfit(vv,sig,ndat,coef,ncoef,ndat,ncoef)
 
@@ -209,6 +239,6 @@ c     test set
         print *,"summary",ncoef,erra(ix),err3
         print *
 
-      endif ! dofit
+      ENDIF ! my_id = -1
 
       end
