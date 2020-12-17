@@ -254,8 +254,8 @@ c generate atom permutation lists
  778  continue
 
       IF (my_id.eq.0) THEN
-      print *
-      print *,'Atom permutations = ',npermute
+      write(6,*)
+      write(6,*)'Atom permutations = ',npermute
       do i=1,min(npermute,100) ! prints only first 100 permutations
         write(6,'(i7,a,1000i5)')i,":",(iatom(i,j),j=1,natom)
       enddo
@@ -387,9 +387,10 @@ c displacements
 
 ccccc MPI DO
       if (my_id.eq.0) tl1=MPI_WTIME()
+
       DO ii=term1(it),term2(it)
 !        IF (my_id.eq.0) THEN
-          if (mod(ii,100).eq.0) print *,"  step ",ii," of ",nterm,
+          if (mod(ii,100).eq.0) write(6,*)"  step ",ii," of ",nterm,
      &                " on proc ",my_id
 !        ENDIF
         ifailmpi(ii-term1(it)+1)=0
@@ -503,17 +504,19 @@ c remove unconnected and intramolecular only terms if required
           if (itype(i).eq.2) nun=nun+1
           if (itype(i).eq.1.or.itype(i).eq.2) bad(nin+nun)=i
         enddo
+
+        call MPI_BARRIER(MPI_COMM_WORLD, ierr)
         IF (my_id.eq.0) THEN
         if (m.eq.1) then
-          print *,"Analyzing fragment channel ",m
+          write(6,*)"Analyzing fragment channel ",m
         else
-          print *,"Updating group types for fragment channel ",m
+          write(6,*)"Updating group types for fragment channel ",m
         endif
         if (lnointra) 
-     &      print *,"Found ",nin," intramolecular-only groups"
+     &      write(6,*)"Found ",nin," intramolecular-only groups"
         if (lnodisc) 
-     &      print *,"Found ",nun," unconnected groups"
-        print *
+     &      write(6,*)"Found ",nun," unconnected groups"
+        write(6,*)
         ENDIF
 
         ENDDO
@@ -543,13 +546,13 @@ c remove unconnected and intramolecular only terms if required
         nbasis=nbasis-nin-nun
 
         IF (my_id.eq.0) THEN
-        print *,"Removing these groups results in the",
+        write(6,*)"Removing these groups results in the",
      & " following reductions:"
-        print *,"Terms:  ",nt," --> ",nterm," ("
+        write(6,*)"Terms:  ",nt," --> ",nterm," ("
      &             ,(dble(nterm)/dble(nt)*100.)," % )"
-        print *,"Groups: ",nb," --> ",nbasis," ("
+        write(6,*)"Groups: ",nb," --> ",nbasis," ("
      &             ,(dble(nbasis)/dble(nb)*100.)," % )"
-        print *
+        write(6,*)
         ENDIF
       ENDIF
       ENDIF ! my_id=0
@@ -572,6 +575,8 @@ c remove unconnected and intramolecular only terms if required
       enddo
       close(55)
       ENDIF
+
+      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
 
 ccc READ BASIS ccc
       ELSE

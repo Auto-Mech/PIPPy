@@ -47,21 +47,23 @@ ccccc MPI
       read(5,*)ncut,(cut(j),j=1,ncut)
       ENDIF
 
-      call MPI_Bcast(datafit, 1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_Bcast(datatest,1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_Bcast(epsilon, 1, MPI_DOUBLE_PRECISION, 0,
+      call MPI_BCAST(datafit, 1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(datatest,1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(epsilon, 1, MPI_DOUBLE_PRECISION, 0,
      &               MPI_COMM_WORLD, ierr)
-      call MPI_Bcast(vvref, 1, MPI_DOUBLE_PRECISION, 0,
+      call MPI_BCAST(vvref, 1, MPI_DOUBLE_PRECISION, 0,
      &               MPI_COMM_WORLD, ierr)
-      call MPI_Bcast(ncut, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_Bcast(cut, ncut, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(ncut, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(cut, ncut, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
 
       call MPI_BARRIER(MPI_COMM_WORLD, ierr)
 
       call prepot ! more parameters are read in prepot
-      ncoef=nncoef
+
+      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
 
       IF (my_id.eq.-1) THEN ! Not fitting function for now
+      ncoef=nncoef
 
       open(7,file=datafit)
       read(7,*)ndat2
@@ -240,5 +242,7 @@ c     test set
         print *
 
       ENDIF ! my_id = -1
+
+      call MPI_FINALIZE(ierr)
 
       end
