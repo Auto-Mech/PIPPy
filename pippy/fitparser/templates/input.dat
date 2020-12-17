@@ -1,7 +1,7 @@
 $training_data
 DataSets              ai.all ai.test
 EnergyUnits           cm-1
-RangeParamater        650.
+RangeParameter        650.
 RefEnergy            -650.
 NumRanges             4
 EnergyRanges          12000. 4000. 0. -100.
