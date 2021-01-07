@@ -355,63 +355,74 @@ ccccc Symmetrize
       nbasis=0
       IF (my_id.eq.0) write(6,*)"Symmetrizing the expansion"
 
-      allocate(term1(nproc))
-      allocate(term2(nproc))
-      allocate(ttlist(nproc))
-      allocate(disps(nproc))
+!      allocate(term1(nproc))
+!      allocate(term2(nproc))
+!      allocate(ttlist(nproc))
+!      allocate(disps(nproc))
 
 c calculate number of terms assigned to each process
-      IF (my_id.eq.0) THEN
-      do i=0,nproc-1
-        term1(i+1)=(i*nterm)/nproc+1
-        term2(i+1)=((i+1)*nterm)/nproc
-        ttlist(i+1)=term2(i+1)-term1(i+1)+1
-      enddo
-      ENDIF
+!      IF (my_id.eq.0) THEN
+!      do i=0,nproc-1
+!        term1(i+1)=(i*nterm)/nproc+1
+!        term2(i+1)=((i+1)*nterm)/nproc
+!        ttlist(i+1)=term2(i+1)-term1(i+1)+1
+!      enddo
+!      ENDIF
 
       call MPI_BARRIER(MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(term1, nproc, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(term2, nproc, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(ttlist,nproc, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+!      call MPI_BCAST(term1, nproc, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+!      call MPI_BCAST(term2, nproc, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+!      call MPI_BCAST(ttlist,nproc, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
 
 c displacements
-      disps(1)=0
-      do i=2,nproc
-        disps(i)=disps(i-1)+ttlist(i-1)
-      enddo
+!      disps(1)=0
+!      do i=2,nproc
+!        disps(i)=disps(i-1)+ttlist(i-1)
+!      enddo
 
       it=my_id+1
 
-      allocate(ifailmpi(ttlist(it)))
-      allocate(ibmpi(ttlist(it)))
+!      allocate(ifailmpi(ttlist(it)))
+!      allocate(ibmpi(ttlist(it)))
+
+      ndata=nterm/nproc+1*min(mod(nterm,nproc),1)
+
+      allocate(ifailmpi(nterm))
+      allocate(ibmpi(nterm))
+
+      do i=1,nterm
+        ifailmpi(i)=0
+        ibmpi(i)=0
+      enddo
 
 ccccc MPI DO
       if (my_id.eq.0) tl1=MPI_WTIME()
 
-      DO ii=term1(it),term2(it)
+      DO ii=my_id+1,nterm,nproc
+!      DO ii=term1(it),term2(it)
 !        IF (my_id.eq.0) THEN
-          if (mod(ii,100).eq.0) write(6,*)"  step ",ii," of ",nterm,
+          if (mod(ii,500).eq.0) write(6,*)"  step ",ii," of ",nterm,
      &                " on proc ",my_id
 !        ENDIF
-        ifailmpi(ii-term1(it)+1)=0
+        ifailmpi(ii)=0
         ! MOVE MPI LOOP TO HERE?
         do i=ii-1,1,-1
           if (indord(ii).eq.indord(i)) then
           do j=1,npermute
-            ifailmpi(ii-term1(it)+1)=1
+            ifailmpi(ii)=1
             do k=1,npairs
               if (ind(i,k).ne.ind(ii,ix(j,k))) then
-                ifailmpi(ii-term1(it)+1)=0
+                ifailmpi(ii)=0
                 exit
               endif
             enddo
-            if (ifailmpi(ii-term1(it)+1).eq.1) go to 1010
+            if (ifailmpi(ii).eq.1) go to 1010
           enddo
           endif
         enddo
  1010 continue
-        if (ifailmpi(ii-term1(it)+1).ne.0) then
-          ibmpi(ii-term1(it)+1)=i
+        if (ifailmpi(ii).ne.0) then
+          ibmpi(ii)=i
         endif
       ENDDO
 ccccc MPI DO
@@ -422,12 +433,16 @@ ccccc MPI DO
 
       call MPI_BARRIER(MPI_COMM_WORLD, ierr)
       if (my_id.eq.0) tl2=MPI_WTIME()
-      call MPI_ALLGATHERV(ifailmpi, ttlist(it), MPI_INTEGER, ifail, 
-     &                    ttlist, disps, MPI_INTEGER,
-     &                    MPI_COMM_WORLD, ierr)
-      call MPI_ALLGATHERV(ibmpi, ttlist(it), MPI_INTEGER, 
-     &                    ib, ttlist, disps, MPI_INTEGER, 
-     &                    MPI_COMM_WORLD, ierr)
+      call MPI_ALLREDUCE(ifailmpi, ifail, nterm, MPI_INTEGER,
+     &                   MPI_SUM, MPI_COMM_WORLD, ierr)
+      call MPI_ALLREDUCE(ibmpi, ib, nterm, MPI_INTEGER, 
+     &                   MPI_SUM, MPI_COMM_WORLD, ierr)
+!      call MPI_ALLGATHER(ifailmpi, ndata, MPI_INTEGER,
+!     &                   ifail, nterm, MPI_INTEGER,
+!     &                   MPI_COMM_WORLD, ierr)
+!      call MPI_ALLGATHER(ibmpi, ndata, MPI_INTEGER, 
+!     &                   ib, nterm, disps, MPI_INTEGER, 
+!     &                   MPI_COMM_WORLD, ierr)
 
       DO ii=1,nterm
         if (ifail(ii).eq.0) then
@@ -442,9 +457,9 @@ ccccc MPI DO
 
       call MPI_BARRIER(MPI_COMM_WORLD, ierr)
       if (my_id.eq.0) then
-        t2=MPI_WTIME()
-        write(6,'(" CPU time in MPI loop is ",f10.5," s",/)')(tl2-tl1)
-        write(6,'(" CPU time in Symmetrizing is ",f10.5," s",/)')(t2-t1)
+       t2=MPI_WTIME()
+       write(6,'(" CPU time in MPI loop is ",f20.10," s",/)')(tl2-tl1)
+       write(6,'(" CPU time in Symmetrizing is ",f20.10," s",/)')(t2-t1)
       endif
 
       nncoef=nbasis
@@ -505,7 +520,6 @@ c remove unconnected and intramolecular only terms if required
           if (itype(i).eq.1.or.itype(i).eq.2) bad(nin+nun)=i
         enddo
 
-        call MPI_BARRIER(MPI_COMM_WORLD, ierr)
         IF (my_id.eq.0) THEN
         if (m.eq.1) then
           write(6,*)"Analyzing fragment channel ",m
@@ -556,6 +570,7 @@ c remove unconnected and intramolecular only terms if required
         ENDIF
       ENDIF
       ENDIF ! my_id=0
+
       nncoef=nbasis
 
       IF (my_id.eq.0) THEN
