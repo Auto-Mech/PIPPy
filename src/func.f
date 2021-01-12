@@ -9,7 +9,10 @@ c MPI
       integer status(MPI_STATUS_SIZE)
 
       include 'param.inc'
-      integer dgroup,a,b,ugg(maxatom,maxatom),g1,g2,ghi,glo,bad(maxterm)
+      integer changroup,a,b,ugg(maxatom,maxatom),
+     &  g1,g2,ghi,glo,bad(maxterm),nchangroup(maxatom)
+      integer, allocatable :: ifailmpi(:),ibmpi(:),ifail(:),ibasis(:)
+      integer, allocatable :: ib(:),term1(:),term2(:),ttlist(:),disps(:)
       dimension iagroup(maxatom),itype(maxterm),
      &  ind(maxterm,maxpair),iatom(maxperm,maxatom),indord(maxterm),
      &  idum(maxatom),nngroup(maxatom),
@@ -18,13 +21,11 @@ c MPI
      &  basis(maxterm),r(maxpair),
      &  dbasisdr(maxterm,maxpair),rrr(maxdata,maxpair),
      &  index(maxatom,maxatom),ix(maxperm,maxpair),
-     &  dgroup(maxchan,maxatom)
-      integer, allocatable :: ifailmpi(:),ibmpi(:),ifail(:),ibasis(:)
-      integer, allocatable :: ib(:),term1(:),term2(:),ttlist(:),disps(:)
+     &  changroup(maxchan,maxatom)
       character*2 symb(maxatom),dum
-      logical lreadbasis,lnodisc,lnointra,linteronly,ldebug
+      logical lreadbasis,lnounc,lnointra,linter,ldebug
 
-      common/foox/rrr,nncoef,natom1,linteronly
+      common/foox/rrr,nncoef,natom1,linter
 
       save npairs,nterm,ind,ibasis
 
@@ -32,7 +33,7 @@ c MPI
       call MPI_COMM_RANK(MPI_COMM_WORLD, my_id, ierr)
 
 c read
-      ldebug=.true.
+      ldebug=.true.             ! print some extra information
       ldebug=.false.
 
       IF (my_id.eq.0) THEN
@@ -43,38 +44,39 @@ c read
       write(6,'(100("*"))')
       write(6,*)
       if (lreadbasis) then
-      write(6,*)"Reading the PIP",ipow,ipowt," basis"
+        write(6,*)"Reading the PIP",ipow,ipowt," basis"
       else
-      write(6,*)"Generating a PIP",ipow,ipowt,
-     & " basis and writing it to basis.dat"
+        write(6,*)"Generating a PIP",ipow,ipowt,
+     &   " basis and writing it to basis.dat"
       endif
+
       if (imode.eq.0) then     ! use all terms
-        lnodisc = .false.      ! remove disconnected terms?
+        lnounc = .false.       ! remove unconnected terms?
         lnointra = .false.     ! remove intramolecular-only terms?
-        linteronly = .false.   ! use only intermolecular terms?
+        linter = .false.       ! use only intermolecular terms?
         write(6,*)"Mode = 0: Using all bond distances"
-      elseif (imode.eq.1) then ! remove disconnected and intra-only terms
-        lnodisc = .true.
-        lnointra = .true.
-        linteronly = .false.
-        write(6,*)"Mode = 1: Using all bond distances and removing",
-     & " disconnected and intramolecular-only terms"
-      elseif (imode.eq.2) then ! remove disconnected terms
-        lnodisc = .true.
+      elseif (imode.eq.1) then ! remove unconnected terms
+        lnounc = .true.
         lnointra = .false.
-        linteronly = .false.
-        write(6,*)"Mode = 2: Using all bond distances and removing",
-     & " disconnected terms"
-      elseif (imode.eq.3) then ! remove intramolecular terms
-        lnodisc = .false.
+        linter = .false.
+        write(6,*)"Mode = 1: Using all bond distances and removing",
+     & " unconnected terms"
+      elseif (imode.eq.2) then ! remove unconnected and intra-only terms
+        lnounc = .true.
         lnointra = .true.
-        linteronly = .false.
+        linter = .false.
+        write(6,*)"Mode = 2: Using all bond distances and removing",
+     & " unconnected and intramolecular-only terms"
+      elseif (imode.eq.3) then ! remove intramolecular terms
+        lnounc = .false.
+        lnointra = .true.
+        linter = .false.
         write(6,*)"Mode = 3: Using all bond distances and removing",
      & " intramolecular-only terms"
       elseif (imode.eq.-1) then ! use intermolecular distances only
-        lnodisc = .false.
+        lnounc = .false.
         lnointra = .false.
-        linteronly = .true.
+        linter = .true.
         write(6,*)"Mode = -1: Using only intermolecular bond distances"
       endif
       write(6,*)
@@ -89,37 +91,37 @@ c read
       call MPI_BCAST(ipowt, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
 !      call MPI_BCAST(imode, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
 
-      call MPI_BCAST(lnodisc, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(lnounc, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
       call MPI_BCAST(lnointra, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(linteronly,1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(linter,1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierr)
 
-      if (lnodisc.or.lnointra.or.linteronly) then
+      if (lnounc.or.lnointra.or.linter) then
       IF (my_id.eq.0) THEN
         read(5,*)nchan
         do i=1,nchan
-          read(5,*)(dgroup(i,k),k=1,natom)
+          read(5,*)(changroup(i,k),k=1,natom)
         enddo
       ENDIF
       call MPI_BCAST(nchan, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(dgroup, maxchan*maxatom,
+      call MPI_BCAST(changroup, maxchan*maxatom,
      &               MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
       endif
 
       call MPI_BARRIER(MPI_COMM_WORLD, ierr)
 
-      if (linteronly) then
+      if (linter) then
         if(nchan.ne.1) then
           IF (my_id.eq.0) write(6,*)
      &     "Mode = -1 requires 1 fragment channel with 2 groups"
-           stop
+          stop
         endif
         natom1=0        ! bimolecular only
         natom2=0
         do i=1,nchan
         do j=1,natom
-          if (dgroup(i,j).eq.1) natom1=natom1+1
-          if (dgroup(i,j).eq.2) natom2=natom2+1
-          if (dgroup(i,j).ne.1.and.dgroup(i,j).ne.2) then
+          if (changroup(i,j).eq.1) natom1=natom1+1
+          if (changroup(i,j).eq.2) natom2=natom2+1
+          if (changroup(i,j).ne.1.and.changroup(i,j).ne.2) then
             IF (my_id.eq.0) write(6,*)
      &       "Mode = -1 requires 1 fragment channel with 2 groups"
             stop
@@ -132,8 +134,20 @@ c read
         endif
       endif
 
+      if (natom.gt.maxatom) then
+        IF (my_id.eq.0)
+     &    print *,"natom (",natom,") > maxatom (",maxatom,")"
+        stop
+      endif
+
+      if (npairs.gt.maxpair) then
+        IF (my_id.eq.0)
+     &    print *,"npairs (",npairs,") > maxpair (",maxpair,")"
+        stop
+      endif
+
       npairs=natom*(natom-1)/2                 ! Number of interatomic pairs
-      if (linteronly) npairs = natom1*natom2
+      if (linter) npairs = natom1*natom2
 
       IF (my_id.eq.0) THEN
       write(6,'(34("*  "))')
@@ -142,36 +156,21 @@ c read
       write(6,'(1x,a8,100a5)')"Symbol",(symb(i),i=1,natom)
       write(6,'(a8,100i5)')"Index",(i,i=1,natom)
       write(6,'(a8,100i5)')"Group",(iagroup(i),i=1,natom)
-      if (lnodisc.or.lnointra.or.linteronly) then
+      if (lnounc.or.lnointra.or.linter) then
         write(6,'(3x,a)')"Fragment Channels"
         do i=1,nchan
-          write(6,'(2x,i5,a,100i5)')i,":",(dgroup(i,j),j=1,natom)
+          write(6,'(2x,i5,a,100i5)')i,":",(changroup(i,j),j=1,natom)
         enddo
       endif
       ENDIF
 
-      if (natom.gt.maxatom) then
-        IF (my_id.eq.0) 
-     &      print *,"natom (",natom,") > maxatom (",maxatom,")"
-        stop
-      endif
-
-      if (npairs.gt.maxpair) then
-        IF (my_id.eq.0) 
-     &    print *,"npairs (",npairs,") > maxpair (",maxpair,")"
-        stop
-      endif
-
+      if (lnointra.or.lnounc.or.linter) then
       do i=1,nchan
       do j=1,natom
-        if (dgroup(i,j).ne.1.and.dgroup(i,j).ne.2) then
-          IF (my_id.eq.0) write(6,*)
-     &      "This version of the code is limited to ",
-     &      "bimolecular fragments"
-          stop
-        endif
+       if (changroup(i,j).gt.nchangroup(i)) nchangroup(i)=changroup(i,j)
       enddo
       enddo
+      endif
 
 ccc GENERATE BASIS ccc
       IF (.not.lreadbasis) THEN
@@ -265,10 +264,10 @@ c generate atom permutation lists
 
       ii=0
       a=natom
-      if (linteronly) a=natom1
+      if (linter) a=natom1
       do i=1,a
         b=i
-        if (linteronly) b=natom1
+        if (linter) b=natom1
         do j=b+1,natom
           ii=ii+1
           index(i,j)=ii ! pair number
@@ -278,35 +277,37 @@ c generate atom permutation lists
 
       IF (my_id.eq.0) THEN
       if (ldebug) then ! DEBUG OUTPUT
-      write(6,*)"Pair permutation list"
-      if (.not.linteronly) then
-      write(6,'(14x,1000(a3,"- ",a3,2x))')
-     &   ((symb(i),symb(j),j=1+i,natom),i=1,natom) 
-      write(6,'(13x,1000(i3," -",i3,2x))')((i,j,j=1+i,natom),
-     &   i=1,natom)
-      else
-      write(6,'(14x,1000(a3,"- ",a3,2x))')
-     &   ((symb(i),symb(j),j=1+natom1,natom),i=1,natom1)
-      write(6,'(13x,1000(i3," -",i3,2x))')((i,j,j=1+natom1,natom),
-     &   i=1,natom1)
-      endif
+        write(6,*)"Pair permutation list"
+        if (.not.linter) then
+          write(6,'(14x,1000(a3,"- ",a3,2x))')
+     &       ((symb(i),symb(j),j=1+i,natom),i=1,natom) 
+          write(6,'(13x,1000(i3," -",i3,2x))')((i,j,j=1+i,natom),
+     &       i=1,natom)
+        else
+          write(6,'(14x,1000(a3,"- ",a3,2x))')
+     &       ((symb(i),symb(j),j=1+natom1,natom),i=1,natom1)
+          write(6,'(13x,1000(i3," -",i3,2x))')((i,j,j=1+natom1,natom),
+     &       i=1,natom1)
+        endif
       endif ! DEBUG OUTPUT
       ENDIF
 
       do ii=1,npermute
         iix=0
         a=natom
-        if (linteronly) a=natom1
+        if (linter) a=natom1
         do i=1,a
           b=i
-          if (linteronly) b=natom1
+          if (linter) b=natom1
           do j=b+1,natom
             iix=iix+1
             ix(ii,iix)=index(iatom(ii,i),iatom(ii,j))
           enddo
         enddo
+        IF (my_id.eq.0) THEN
         if (ii.le.100.and.ldebug) write(6,'(i7,a,1000i10)')
      &     ii,":",(ix(ii,iix),iix=1,npairs)
+        ENDIF
       enddo
       IF (my_id.eq.0) THEN
       if (npermute.gt.100.and.ldebug) write(6,*)" ** Truncating list **"
@@ -348,42 +349,16 @@ c generate terms using user-supplied power constraints
  400  continue
       nterm=ii-1
 
+c     Symmetrize the basis
       call MPI_BARRIER(MPI_COMM_WORLD, ierr)
-
       if (my_id.eq.0) t1=MPI_WTIME()
-ccccc Symmetrize
+
       nbasis=0
       IF (my_id.eq.0) write(6,*)"Symmetrizing the expansion"
 
-!      allocate(term1(nproc))
-!      allocate(term2(nproc))
-!      allocate(ttlist(nproc))
-!      allocate(disps(nproc))
-
-c calculate number of terms assigned to each process
-!      IF (my_id.eq.0) THEN
-!      do i=0,nproc-1
-!        term1(i+1)=(i*nterm)/nproc+1
-!        term2(i+1)=((i+1)*nterm)/nproc
-!        ttlist(i+1)=term2(i+1)-term1(i+1)+1
-!      enddo
-!      ENDIF
-
       call MPI_BARRIER(MPI_COMM_WORLD, ierr)
-!      call MPI_BCAST(term1, nproc, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-!      call MPI_BCAST(term2, nproc, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-!      call MPI_BCAST(ttlist,nproc, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-
-c displacements
-!      disps(1)=0
-!      do i=2,nproc
-!        disps(i)=disps(i-1)+ttlist(i-1)
-!      enddo
 
       it=my_id+1
-
-!      allocate(ifailmpi(ttlist(it)))
-!      allocate(ibmpi(ttlist(it)))
 
       ndata=nterm/nproc+1*min(mod(nterm,nproc),1)
 
@@ -395,17 +370,12 @@ c displacements
         ibmpi(i)=0
       enddo
 
-ccccc MPI DO
       if (my_id.eq.0) tl1=MPI_WTIME()
-
+ccccc MPI DO LOOP
       DO ii=my_id+1,nterm,nproc
-!      DO ii=term1(it),term2(it)
-!        IF (my_id.eq.0) THEN
-          if (mod(ii,500).eq.0) write(6,*)"  step ",ii," of ",nterm,
+        if (mod(ii,500).eq.0) write(6,*)"  step ",ii," of ",nterm,
      &                " on proc ",my_id
-!        ENDIF
         ifailmpi(ii)=0
-        ! MOVE MPI LOOP TO HERE?
         do i=ii-1,1,-1
           if (indord(ii).eq.indord(i)) then
           do j=1,npermute
@@ -425,7 +395,7 @@ ccccc MPI DO
           ibmpi(ii)=i
         endif
       ENDDO
-ccccc MPI DO
+ccccc MPI DO LOOP
 
       allocate(ifail(nterm))
       allocate(ibasis(nterm))
@@ -437,12 +407,6 @@ ccccc MPI DO
      &                   MPI_SUM, MPI_COMM_WORLD, ierr)
       call MPI_ALLREDUCE(ibmpi, ib, nterm, MPI_INTEGER, 
      &                   MPI_SUM, MPI_COMM_WORLD, ierr)
-!      call MPI_ALLGATHER(ifailmpi, ndata, MPI_INTEGER,
-!     &                   ifail, nterm, MPI_INTEGER,
-!     &                   MPI_COMM_WORLD, ierr)
-!      call MPI_ALLGATHER(ibmpi, ndata, MPI_INTEGER, 
-!     &                   ib, nterm, disps, MPI_INTEGER, 
-!     &                   MPI_COMM_WORLD, ierr)
 
       DO ii=1,nterm
         if (ifail(ii).eq.0) then
@@ -464,52 +428,75 @@ ccccc MPI DO
 
       nncoef=nbasis
 
-c remove unconnected and intramolecular only terms if required
-
+c     remove unconnected and intramolecular only terms if required
       call MPI_BARRIER(MPI_COMM_WORLD, ierr)
       IF (my_id.eq.0) THEN
-      IF (lnodisc.or.lnointra) THEN
+      IF (lnounc.or.lnointra) THEN
 
         do k=1,nterm
           itype(k)=0
         enddo
 
         DO m=1,nchan     ! loop over fragment channels, m
+        nbadi=0
+        nbadu=0
+        ghi=0
+        glo=natom
+        do i=1,natom
+        do j=i+1,natom
+          g1=min(changroup(m,i),changroup(m,j))
+          g2=max(changroup(m,i),changroup(m,j))
+          ghi=max(g1,g2,ghi)
+          glo=min(g1,g2,glo)
+        enddo
+        enddo
         do k=1,nterm     ! loop over terms, k
-
-          do i=1,natom
+          do i=1,3
           do j=1,natom
             ugg(i,j)=0
           enddo
           enddo
-          ghi=0
-          glo=natom
           ii=0           ! loop over atom pairs i<j
           do i=1,natom
           do j=i+1,natom
             ii=ii+1
-            g1=min(dgroup(m,i),dgroup(m,j))
-            g2=max(dgroup(m,i),dgroup(m,j))
-            ghi=max(g1,g2,ghi)
-            glo=min(g1,g2,glo)
-            ugg(g1,g2)=ugg(g1,g2)+ind(k,ii)
+            g1=min(changroup(m,i),changroup(m,j))
+            g2=max(changroup(m,i),changroup(m,j))
+            if (g1.eq.g2) then
+              ugg(1,g1)=ugg(1,g1)+ind(k,ii) ! u11
+              do l=glo,ghi
+              if (g1.ne.l) ugg(2,l)=ugg(2,l)+ind(k,ii) ! u22
+              enddo
+            endif
+            if (g1.ne.g2) then
+              ugg(3,g1)=ugg(3,g1)+ind(k,ii) ! u12
+              ugg(3,g2)=ugg(3,g2)+ind(k,ii) ! u12
+              do l=glo,ghi
+              if (g1.ne.l.and.g2.ne.l) ugg(2,l)=ugg(2,l)+ind(k,ii) ! u22
+              enddo
+            endif
           enddo
-          enddo
-
-          ng=0
-          do i=glo,ghi   ! loop over groups
-            if (ugg(i,i).ne.0) ng=ng+1
           enddo
 
           ityp=0
-          if (ng.eq.0.or.ugg(1,2).ne.0) then
-            ityp=0 ! ok
-          elseif (ng.eq.1.and.lnointra) then
-            ityp=1 ! intra only
-          elseif (ng.eq.2.and.lnodisc) then
-            ityp=2 ! unconnected
-          endif
-          itype(ibasis(k)) = max(itype(ibasis(k)),ityp) ! If terms have different statuses in different channels, retain the larger assignment
+          do i=glo,ghi   ! loop over groups
+            if (ugg(1,i).eq.0.and.ugg(2,i).eq.0) ng=0
+            if (ugg(1,i).gt.0.and.ugg(2,i).eq.0) ng=1
+            if (ugg(1,i).eq.0.and.ugg(2,i).gt.0) ng=-1
+            if (ugg(1,i).gt.0.and.ugg(2,i).gt.0) ng=2
+            if (ng.eq.0.or.ugg(3,i).ne.0) then
+              ityp=0 ! ok
+            elseif (ng.eq.1.and.lnointra.and.ityp.eq.0) then
+              ityp=1 ! intra only 
+              nbadi=nbadi+1
+            elseif (ng.eq.2.and.lnounc.and.ityp.eq.0) then
+              ityp=2 ! unconnected
+              nbadu=nbadu+1
+            endif
+          itype(ibasis(k)) = max(itype(ibasis(k)),ityp)
+c          print *,k,ibasis(k),"u",ugg(1,i),ugg(2,i),ugg(3,i),
+c     &   "x",ng,ityp,itype(ibasis(k))
+          enddo
         enddo
 
         nin=0
@@ -523,13 +510,21 @@ c remove unconnected and intramolecular only terms if required
         IF (my_id.eq.0) THEN
         if (m.eq.1) then
           write(6,*)"Analyzing fragment channel ",m
+        if (lnointra)
+     &    write(6,*)"Found ",nbadi," ( ",nin,
+     &              ") intramolecular-only terms (groups)"
+        if (lnounc)
+     &    write(6,*)"Found ",nbadu," ( ",nun,
+     &              ") unconnected terms (groups)"
         else
           write(6,*)"Updating group types for fragment channel ",m
+        if (lnointra)
+     &    write(6,*)"Found ",nbadi," ( ",nin,
+     &              ") new intramolecular-only terms (total groups)"
+        if (lnounc)
+     &    write(6,*)"Found ",nbadu," ( ",nun,
+     &              ") new unconnected terms (total groups)"
         endif
-        if (lnointra) 
-     &      write(6,*)"Found ",nin," intramolecular-only groups"
-        if (lnodisc) 
-     &      write(6,*)"Found ",nun," unconnected groups"
         write(6,*)
         ENDIF
 
@@ -538,8 +533,15 @@ c remove unconnected and intramolecular only terms if required
         nt=nterm
         nb=nbasis
 
+        IF (my_id.eq.0) write(6,*)
+     &    "Removing terms and reordering the expansion"
+        nlast=0
         do ii=nterm,1,-1
-          if (itype(ibasis(ii)).ne.0) then ! bad term
+          if (mod(nterm-ii,1000).eq.0.and.nterm-ii.ne.nlast) then
+            nlast=nterm-ii
+            write(6,*)"  step ",nterm-ii," of ",nterm
+          endif
+          if (itype(ibasis(ii)).ne.0) then ! remove this term
             nterm=nterm-1
             do jj=ii,nterm
               ibasis(jj)=ibasis(jj+1)
@@ -569,7 +571,7 @@ c remove unconnected and intramolecular only terms if required
         write(6,*)
         ENDIF
       ENDIF
-      ENDIF ! my_id=0
+      ENDIF ! my_id=0 (remove if this section is parallelized)
 
       nncoef=nbasis
 
@@ -580,7 +582,7 @@ c remove unconnected and intramolecular only terms if required
       write(6,*)
       open(55,file="basis.dat")
       a=natom
-      if (linteronly) a=natom1
+      if (linter) a=natom1
       write(55,*)a,npairs,nncoef,nterm,
      & " ! atoms, atom pairs, groups/coefficients, terms"
       write(55,*)"   TERM   GROUP : EXPONENTS"
@@ -598,7 +600,7 @@ ccc READ BASIS ccc
         IF (my_id.eq.0) THEN
         open(55,file="basis.dat")
         a=natom
-        if (linteronly) a=natom1
+        if (linter) a=natom1
         read(55,*)a,npairs,nncoef,nterm
         read(55,*)
         do i=1,nterm
