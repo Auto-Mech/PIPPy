@@ -46,7 +46,7 @@ training.dat  test.dat
 nwrite  itmp[nwrite]
 - nwrite (int): flag for output files to write\
    = 0:  all sections are written, itmp not read\
-   > 0:  write output to unit 6 and each unit listed in itmp
+   &gt; 0:  write output to unit 6 and each unit listed in itmp
 - itmp[nwrite] (int): list of units to write to. See III. OUTPUT FILES for key.
 
 **Record 3**: RangeParameter  RefEnergy\
