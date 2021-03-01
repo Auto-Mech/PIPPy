@@ -356,7 +356,7 @@ c     Symmetrize the basis
       nbasis=0
       IF (my_id.eq.0) write(6,*)"Symmetrizing the expansion"
 
-      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+!      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
 
       it=my_id+1
 

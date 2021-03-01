@@ -1,9 +1,10 @@
-${DataSets}							##Record 1
-${RangeParameter} ${RefEnergy}					##Record 2
-${NumRanges} ${EnergyRanges}					##Record 3
-${NumAtoms}							##Record 4
-${Symbols}  							##Record 5
-${AtomGroups}	        					##Record 6
-${ReadBasis}  ${FactorOrder} ${TotalOrder}  ${ExpansionType}	##Record 7
-${NumChannels}							##Record 8
-${FragmentGroups}						##Record 9
+${DataTrain}   ${DataTest}					##Record 1
+${NumWrite}   ${ITmp}						##Record 2
+${RangeParameter}   ${RefEnergy}				##Record 3
+${NumRanges}   ${EnergyRanges}					##Record 4
+${NumAtoms}							##Record 5
+${Symbols}  							##Record 6
+${AtomGroups}	        					##Record 7
+${ReadBasis}   ${FactorOrder} ${TotalOrder}   ${IMode}		##Record 8
+${NumChannels}							##Record 9
+${FragmentGroups}						##Record 10
