@@ -18,10 +18,10 @@ c MPI
       character*16 datafit,datatest
       character*2 dum
 
-      integer batches,natom1,a,b
-      logical linteronly
+      integer natom1,a,b,itmp(100)
+      logical linteronly,lwrite(-1:100),lcust
 
-      common/foox/rrr,nncoef,natom1,linteronly
+      common/foox/rrr,nncoef,natom1,linteronly,lwrite
 
 ccccc MPI
       call MPI_INIT(ierr)
@@ -30,25 +30,39 @@ ccccc MPI
 
       IF (my_id.eq.0) THEN
         timestart=MPI_WTIME()
-        write(6,*)"Began at ",timestart
+c        write(6,*)"Began at ",timestart
       ENDIF
-!      write(6,"(a, i3)") " MPI current proc: ", my_id
 
       IF (my_id.eq.0) THEN
 !      write(6,"(a, i3)") " MPI num procs: ", nprocs
+      lcust = .false.
+      lcust = .true. ! turn on nonstandard options
 
       write(6,'(100("*"))')
       write(6,*)
       write(6,*)"PIP: A Fortran code for fitting permutationally",
      &  " invariant polynomials"
       write(6,*)"     Daniel R. Moberg and Ahren W. Jasper, Argonne,",
-     & " 2020"
+     & " 2021"
       write(6,*)
 
-      read(5,*)datafit,datatest
-      read(5,*)epsilon,vvref
-      read(5,*)ncut,(cut(j),j=1,ncut)
+      read(5,*)datafit,datatest                 ! RECORD 1
+      read(5,*)nwrite,(itmp(j),j=1,nwrite)      ! RECORD 2
+      read(5,*)epsilon,vvref                    ! RECORD 3
+      read(5,*)ncut,(cut(j),j=1,ncut)           ! RECORD 4
       ENDIF
+      if (nwrite.eq.0) then
+        do i=1,100
+          lwrite(i)=.true.
+        enddo
+      else
+        do i=1,100
+          lwrite(i)=.false.
+        enddo
+        do i=1,nwrite
+          lwrite(itmp(i))=.true.
+        enddo
+      endif
 
       call MPI_BARRIER(MPI_COMM_WORLD, ierr)
       call MPI_BCAST(datafit, 1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
@@ -57,12 +71,14 @@ ccccc MPI
      &               MPI_COMM_WORLD, ierr)
       call MPI_BCAST(vvref, 1, MPI_DOUBLE_PRECISION, 0,
      &               MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(lwrite,nwrite+2,MPI_LOGICAL,0,MPI_COMM_WORLD, ierr)
       call MPI_BCAST(ncut, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
       call MPI_BCAST(cut, ncut, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
 
-      call prepot ! more parameters are read in prepot
+      call prepot ! generate or read basis
 
-      IF (.false.) THEN ! Not fitting function for now
+c      IF (.false.) THEN ! Not fitting function for now
+      IF (my_id.eq.0) THEN
 !      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
       ncoef=nncoef
  
@@ -83,6 +99,7 @@ ccccc MPI
         enddo
  
         if (vvx.lt.cut(1)) then
+        if (.not.lcust.or.vvx.ne.0.d0) then
           if (vvx.lt.vvmin) vvmin=vvx
           ndat=ndat+1
           vv(ndat)=vvx
@@ -100,6 +117,7 @@ ccccc MPI
           enddo  
         sig(ndat)=1.d0/(epsilon/(dabs(vv(ndat)-vvref)+epsilon))
         endif
+        endif
       enddo
       close(7)
  
@@ -108,7 +126,11 @@ ccccc MPI
       write(6,*)
       write(6,*)"Fitting to the training data in ",datafit
       write(6,*)"Using ",ndat," of the ",ndat2," provided data"
+      if (datatest.eq."none".or.datatest.eq."skip") then 
+      write(6,*)"Skipping out of sampling testing"
+      else
       write(6,*)"Out of sample testing using data in ",datatest
+      endif
       write(6,*)"Weight function parameters: epsilon = ",
      & epsilon," and vref = ",vvref
       write(6,*)
@@ -129,12 +151,14 @@ ccccc MPI
       open(56,file="coef.dat")
       do i=1,ndat
         call funcs1(i,basis,ncoef) 
-c      write(88,'(i10,10000e18.6)')i,1./sig(i),vv(i),(basis(j),j=1,ncoef)
         vvx=0.d0
         do j=1,ncoef
           vvx=vvx+coef(j)*basis(j)
           if (i.eq.1) write(56,'(i5,e20.10)')j,coef(j)
         enddo
+        if (lwrite(20)) write(20,'(i10,10000e18.6)')i,1./sig(i),vv(i),
+     &                                              (basis(j),j=1,ncoef)
+        if (lwrite(11)) write(11,'(i10,3e18.6)')i,1./sig(i),vv(i),vvx
         do k=1,ncut
         if (vv(i).lt.cut(k)) then
           erra(k)=erra(k)+(vvx-vv(i))**2/sig(i)**2
@@ -170,17 +194,19 @@ c      write(88,'(i10,10000e18.6)')i,1./sig(i),vv(i),(basis(j),j=1,ncoef)
       do k=1,ncut
       erra(k)=dsqrt(erra(k)/wa(k))
       errc(k)=dsqrt(errc(k)/wc(k))
-      write(6,'(f15.5,i10,f15.5," ( ",i10,f15.5," ) ")')
-     &  cut(k),nc(k),errc(k),na(k),erra(k)
+      write(6,'(f15.2,i10,f10.1,f15.5," ( ",i10,f15.5," ) ")')
+     &  cut(k),nc(k),wc(k)/wa(1)*100.,errc(k),na(k),erra(k)
       enddo
       write(6,*) 
       write(6,*) "Comparision of low energy points found while fitting"
-      write(6,*) "                    data           fit        ",
-     & "    difference "
+      write(6,*) "                        data           fit        ",
+     & "  difference "
       write(6,'(a,3f15.5)')"   data minimum ",vvia,vvib,vvia-vvib
       write(6,'(a,3f15.5)')" fitted minumum ",vvxa,vvxb,vvxa-vvxb
  
 c     test set
+      if (datatest.eq."none".or.datatest.eq."skip") then ! skip
+      else
       open(7,file=datatest)
       rewind(7)
       read(7,*)ndat2
@@ -198,9 +224,9 @@ c     test set
         enddo
  
         xcut=cut(1) 
-        if (ncut.gt.1) xcut=cut(2) 
+        if (lcust.and.ncut.gt.1) xcut=cut(2)
         if (vvx.lt.xcut) then
-c        if (vvx.lt.xcut.and.vvx.ne.0.d0) then
+        if (.not.lcust.or.vvx.ne.0.d0) then
           ndat=ndat+1
           vv(ndat)=vvx
           ii=0
@@ -216,6 +242,7 @@ c        if (vvx.lt.xcut.and.vvx.ne.0.d0) then
           enddo  
        sig(ndat)=1.d0/(epsilon/(dabs(vv(ndat)-vvref)+epsilon))
         endif
+        endif
       enddo  
  
       err3=0.d0
@@ -229,28 +256,32 @@ c        if (vvx.lt.xcut.and.vvx.ne.0.d0) then
         enddo
         err3=err3+(vvx-vv(i))**2/sig(i)**2
         wn=wn+1.d0/sig(i)**2
+        if (lwrite(12)) write(12,'(i10,3e18.6)')i,1./sig(i),vv(i),vvx
       enddo
       err3=dsqrt(err3/wn)
  
       write(6,*)
       write(6,*)"Out of sample test set error: ",err3 
+      endif
+
       write(6,*)
       write(6,*)"Optimized coefficients written to coef.dat"
       write(6,*)
       write(6,'(100("*"))')
- 
-      ix=2
-      if (ncut.eq.1) ix=1 
+
+      if (lcust) then
+      ix=1
+      if (ncut.gt.1) ix=2 
       write(6,*) 
       write(6,*) "summary",ncoef,erra(ix),err3
-c      write(6,*) "summary",ncoef,erra(1),err3
       write(6,*) 
+      endif
  
       ENDIF ! if (.false.)
 
       IF (my_id.eq.0) THEN
         timeend=MPI_WTIME()
-        write(6,'("Total time: ",f20.10," s",/)'),(timeend-timestart)
+        write(6,'(/,"Total time: ",f20.10," s",/)'),(timeend-timestart)
       ENDIF
 
       call MPI_FINALIZE(ierr)
