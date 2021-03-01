@@ -13,15 +13,15 @@ Email: ajasper@anl.gov
 ### 1. Install Fortran code
 
 The Fortran code is located in the src/ directory, along with a compile script:\
-  ./compile.sh in autofit/src
+  ./compile.sh in `autofit/src`
 
 Example input and output can be found in:\
-  autofit/examples/
+  `autofit/examples/`
 
 ### 2. PIPPy
 PIPPy is an optional Python wrapper for generating autofit input files.
 Example input can be found in:
-  autofit/examples/pippy/
+  `autofit/examples/pippy/`
 
 Note: Mako Templates module for Python is required, see [https://www.makotemplates.org/]
 
@@ -44,7 +44,7 @@ training.dat  test.dat
 
 **Record 2**: NumWrite  ITmp\
 nwrite  itmp[nwrite]
-- nwrite (int): flag for output files to write
+- nwrite (int): flag for output files to write\
    = 0:  all sections are written, itmp not read\
    > 0:  write output to unit 6 and each unit listed in itmp
 - itmp[nwrite] (int): list of units to write to. See III. OUTPUT FILES for key.
@@ -79,7 +79,7 @@ lreadbasis  ipow ipowt  imode
     = FALSE: compute basis and write to basis.dat
 - ipow (int): Maximum allowed order for a single factor in a term
 - ipowt (int): Maximmum total order allowed for a term
-- imode (int): Sets the mode for generating the PIP expansion
+- imode (int): Sets the mode for generating the PIP expansion\
     = -1: Use intermolecular terms only\
     =  0: Use all terms in PIP expansion\
     =  1: Remove unconnected terms from basis\
