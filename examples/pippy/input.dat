@@ -1,5 +1,8 @@
 $training_data
-DataSets              ai.all ai.test
+DataTrain             ai.all
+DataTest              ai.test
+NumWrite              4
+ITmp                  1 10 11 12
 EnergyUnits           cm-1
 RangeParameter        650.
 RefEnergy            -650.
@@ -14,7 +17,7 @@ AtomGroups            1 1 2  3 3
 ReadBasis             F
 FactorOrder           4
 TotalOrder            4
-ExpansionType         2
+IMode                 2
 NumChannels           1
 FragmentGroups        1 1 1  2 2
 $end
