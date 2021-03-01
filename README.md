@@ -12,14 +12,14 @@ Email: ajasper@anl.gov
 ## I. Installation
 ### 1. Install Fortran code
 
-The Fortran code is located in the src/ directory, along with a compile script:
+The Fortran code is located in the src/ directory, along with a compile script:\
   ./compile.sh in autofit/src
 
-Example input and output can be found in:
+Example input and output can be found in:\
   autofit/examples/
 
 ### 2. PIPPy
-iPIPPy is an optional Python wrapper for generating autofit input files.
+PIPPy is an optional Python wrapper for generating autofit input files.
 Example input can be found in:
   autofit/examples/pippy/
 
@@ -45,8 +45,8 @@ training.dat  test.dat
 **Record 2**: NumWrite  ITmp\
 nwrite  itmp[nwrite]
 - nwrite (int): flag for output files to write
-   - = 0:  all sections are written, itmp not read
-   - > 0:  write output to unit 6 and each unit listed in itmp
+   = 0:  all sections are written, itmp not read\
+   > 0:  write output to unit 6 and each unit listed in itmp
 - itmp[nwrite] (int): list of units to write to. See III. OUTPUT FILES for key.
 
 **Record 3**: RangeParameter  RefEnergy\
@@ -75,16 +75,16 @@ iagroup[1] iagroup[2] ... iagroup[natom]
 **Record 8**: ReadBasis, FactorOrder, TotalOrder, IMode\
 lreadbasis  ipow ipowt  imode
 - lreadbasis (log)
-    - = TRUE: read basis from basis.dat
-    - = FALSE: compute basis and write to basis.dat
+    = TRUE: read basis from basis.dat  
+    = FALSE: compute basis and write to basis.dat
 - ipow (int): Maximum allowed order for a single factor in a term
 - ipowt (int): Maximmum total order allowed for a term
 - imode (int): Sets the mode for generating the PIP expansion
-    - = -1: Use intermolecular terms only
-    - =  0: Use all terms in PIP expansion
-    - =  1: Remove unconnected terms from basis
-    - =  2: Remove unconnected terms and intramolecular-only terms from basis
-    - =  3: Remove intramolecular-only terms from basis
+    = -1: Use intermolecular terms only\
+    =  0: Use all terms in PIP expansion\
+    =  1: Remove unconnected terms from basis\
+    =  2: Remove unconnected terms and intramolecular-only terms from basis\
+    =  3: Remove intramolecular-only terms from basis
 
 **Record 9**: NumChannels\
 numfragchan
@@ -98,20 +98,20 @@ fgroup[natom]
 
 These files contain the training and test sets of the systems. Autofit does not include functionality for creating these files, which is left up to the decision of the user. The format for both files are the same:
 
-Line 1:                     nconfig
-Line 2:                     natom
-Line 3:                     config#   dummy   V/cm-1
-Line 4 to 4+natom:      symb   x   y   z
+Line 1:                     nconfig\
+Line 2:                     natom\
+Line 3:                     config#   dummy   V/cm-1\
+Line 4 to 4+natom:      symb   x   y   z\
 Repeat lines 2-4+natom for nconfigs.
 
-Example files can be found in each example system in:
+Example files can be found in each example system in:\
   autofit/examples/
 
 ---------------------------------------------------------------------------------------
 ## III. OUTPUT FILES
 
 In general, three files are created upon running autofit. Example output files
-can be found in each example system in:
+can be found in each example system in:\
   autofit/examples/
 
 ### 1. fit.out
@@ -145,9 +145,9 @@ group number followed by the coefficient value.
 
 ### 4. Units
 
-Unit 6 (standard output): General output to fit.in
-Unit 1: Extra info included in standard output
-Unit 10: Detailed info on basis
-Unit 11: vfit vs vai for test set
-Unit 12: vfit vs vai for training set
+Unit 6 (standard output): General output to fit.in\
+Unit 1: Extra info included in standard output\
+Unit 10: Detailed info on basis\
+Unit 11: vfit vs vai for test set\
+Unit 12: vfit vs vai for training set\
 Unit 20: Generates x matrix
