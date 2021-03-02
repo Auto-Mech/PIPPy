@@ -51,6 +51,21 @@ c        write(6,*)"Began at ",timestart
       read(5,*)epsilon,vvref                    ! RECORD 3
       read(5,*)ncut,(cut(j),j=1,ncut)           ! RECORD 4
       ENDIF
+
+      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(datafit, 1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(datatest,1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(nwrite, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(itmp, nwrite, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(epsilon, 1, MPI_DOUBLE_PRECISION, 0,
+     &               MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(vvref, 1, MPI_DOUBLE_PRECISION, 0,
+     &               MPI_COMM_WORLD, ierr)
+!      call MPI_BCAST(lwrite,nwrite+2,MPI_LOGICAL,0,MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(ncut, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(cut, ncut, MPI_DOUBLE_PRECISION, 0, 
+     &               MPI_COMM_WORLD, ierr)
+
       if (nwrite.eq.0) then
         do i=1,100
           lwrite(i)=.true.
@@ -63,17 +78,6 @@ c        write(6,*)"Began at ",timestart
           lwrite(itmp(i))=.true.
         enddo
       endif
-
-      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(datafit, 1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(datatest,1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(epsilon, 1, MPI_DOUBLE_PRECISION, 0,
-     &               MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(vvref, 1, MPI_DOUBLE_PRECISION, 0,
-     &               MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(lwrite,nwrite+2,MPI_LOGICAL,0,MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(ncut, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(cut, ncut, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
 
       call prepot ! generate or read basis
 
@@ -273,7 +277,7 @@ c     test set
       ix=1
       if (ncut.gt.1) ix=2 
       write(6,*) 
-      write(6,*) "summary",ncoef,erra(ix),err3
+      write(6,*) "Summary:",ncoef,erra(ix),err3
       write(6,*) 
       endif
  

@@ -565,7 +565,7 @@ c     remove unconnected and intramolecular only terms if required
         if (lnointra)
      &    write(6,*)"Found ",nbadi," new intramolecular-only terms"
         if (lnointra)
-     &    write(6,*)"The total number of intramolecular-only",
+     &    write(6,*)"The total number of intramolecular-only ",
      &              "groups is now ",nin
         if (lnounc)
      &    write(6,*)"Found ",nbadu," new unconnected terms"
