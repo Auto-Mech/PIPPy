@@ -81,8 +81,8 @@ c        write(6,*)"Began at ",timestart
 
       call prepot ! generate or read basis
 
-c      IF (.false.) THEN ! Not fitting function for now
-      IF (my_id.eq.0) THEN
+      IF (.false.) THEN ! Not fitting function for now
+!      IF (my_id.eq.0) THEN
 !      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
       ncoef=nncoef
  
