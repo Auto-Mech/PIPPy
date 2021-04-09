@@ -1,0 +1,79 @@
+****************************************************************************************************
+
+ PIP: A Fortran code for fitting permutationally invariant polynomials
+      Daniel R. Moberg and Ahren W. Jasper, Argonne, 2021
+
+****************************************************************************************************
+
+ Generating a PIP    3    3 basis and writing it to basis.dat
+ Mode = 1: Using all bond distances and removing unconnected terms
+
+*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  
+
+ Atoms
+   Symbol   O    O    H    N    N 
+   Index    1    2    3    4    5
+   Group    1    1    2    3    3
+   Number of permutations =          4
+
+   Fragment Channels
+     1 :    1    1    1    2    2
+
+ Atom permutations =            4
+     1 :    1    2    3    4    5
+     2 :    1    2    3    5    4
+     3 :    2    1    3    4    5
+     4 :    2    1    3    5    4
+
+ Pair permutations
+               O -  O    O -  H    O -  N    O -  N    O -  H    O -  N    O -  N    H -  N    H -  N    N -  N 
+               1 -  2    1 -  3    1 -  4    1 -  5    2 -  3    2 -  4    2 -  5    3 -  4    3 -  5    4 -  5
+     1 :         1         2         3         4         5         6         7         8         9        10
+     2 :         1         2         4         3         5         7         6         9         8        10
+     3 :         1         5         6         7         2         3         4         8         9        10
+     4 :         1         5         7         6         2         4         3         9         8        10
+
+ Symmetrizing the expansion
+
+ CPU time spent symmetrizing:         0.0012018681 s
+
+ Analyzing fragment channel            1
+ Found           12  (            8 ) unconnected terms (groups)
+
+ Removing these groups results in the following reductions:
+ Terms:         286  -         12 =        274 (         95.804 % )
+ Groups:        102  -          8 =         94 (         92.157 % )
+
+ Finished preparing the basis and writing it to basis.dat
+ This basis has          274  (          94 ) terms (groups)
+
+*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  
+
+ Fitting to the training data in train.dat       
+ Using          840  of the         1000  provided data
+ Out of sample testing using data in test.dat        
+ Weight function parameters: epsilon =    650.00000000000000       and vref =   -650.00000000000000     
+
+ Weighted errors between (below) user-provided energies
+           E       number    %weight       error   (     number        error   )
+       12000.00        74       0.3      641.09039 (        840       62.57760 ) 
+        4000.00       249      22.8      101.09246 (        766       51.90669 ) 
+           0.00       446      63.3       15.87048 (        517       21.41335 ) 
+        -100.00        71      13.6       37.73432 (         71       37.73432 ) 
+
+ Comparision of low energy points found while fitting
+                         data           fit          difference 
+   data minimum      -556.69960     -555.68795       -1.01165
+ fitted minumum      -532.56345     -572.62155       40.05811
+
+ Out of sample test set error:    93.538763013507477     
+
+ Optimized coefficients written to coef.dat
+
+****************************************************************************************************
+
+ summary          94   51.906691493571977        93.538763013507477     
+
+
+Total time:         0.1817400455 s
+

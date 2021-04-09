@@ -53,17 +53,18 @@ c        write(6,*)"Began at ",timestart
       read(5,*)epsilon,vvref
       read(5,*)ncut,(cut(j),j=1,ncut)
       ENDIF
+
       if (nwrite.eq.-1) then
-      do i=1,100
-      lwrite(i)=.true.
-      enddo
+        do i=1,100
+          lwrite(i)=.true.
+        enddo
       else
-      do i=1,100
-      lwrite(i)=.false.
-      enddo
-      do i=1,nwrite
-      lwrite(itmp(i))=.true.
-      enddo
+        do i=1,100
+          lwrite(i)=.false.
+        enddo
+        do i=1,nwrite
+          lwrite(itmp(i))=.true.
+        enddo
       endif
 
       call MPI_BARRIER(MPI_COMM_WORLD, ierr)
@@ -73,15 +74,14 @@ c        write(6,*)"Began at ",timestart
      &               MPI_COMM_WORLD, ierr)
       call MPI_BCAST(vvref, 1, MPI_DOUBLE_PRECISION, 0,
      &               MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(lwrite,nwrite+2,MPI_LOGICAL,0,MPI_COMM_WORLD, ierr)
+!      call MPI_BCAST(lwrite,nwrite+2,MPI_LOGICAL,0,MPI_COMM_WORLD, ierr)
       call MPI_BCAST(ncut, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
       call MPI_BCAST(cut, ncut, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
 
       call prepot ! generate or read basis
 
-c      IF (.false.) THEN ! Not fitting function for now
-      IF (my_id.eq.0) THEN ! Not fitting function for now
-!      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+c      IF (.false.) THEN ! To not fit function
+      IF (my_id.eq.0) THEN
       ncoef=nncoef
  
       open(7,file=datafit)

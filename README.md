@@ -8,35 +8,29 @@ Web: github.com/Auto-Mech/PIPPy\
 Email: ajasper@anl.gov
 
 References:\
-(1) D. R. Moberg and A. W. Jasper, PIPPy, Argonne National Laboratory, 2021.
+(1) D. R. Moberg and A. W. Jasper, PIPPy, Argonne National Laboratory, 2021.\
 (2) D. R. Moberg and A. W. Jasper, Permutationally invariant polynomial expansions with unrestricted complexity, J. Chem. Thoery Comput., submitted (2021)
 
 ---------------------------------------------------------------------------------------
 ## I. DISTRIBUTION AND INSTALLATION
 
-The Fortran code is located in the src/ directory, along with a compile script:\
-  ./compile.sh in `autofit/src`
-
-Example input and output can be found in:\
-  `autofit/examples/`
-
 PIPPy is distributed with four subdirectories:\
-doc/	Contains this manual in txt format\
-python/	Contains the Python wrapper\
-runs/	Contains several example input and output files\
-src/	Contains the Fortran code and a compilation script named compile.sh
+    doc/	Contains this manual in txt format\
+    python/	Contains the Python wrapper\
+    runs/	Contains several example input and output files\
+    src/	Contains the Fortran code and a compilation script named compile.sh
 
 To install PIPPy, first compile the Fortran executable by running ./compile.sh in the
 src/ directory. The compiled executable is named pip.x and appears in the src/ directory.
 
 The Fortran code can be run independently of the Python wrapper with a properly prepared
-input file. An example of running a parallel executable is:
+input file. An example of running a parallel executable is:\
    `mpiexec -n 36 src/pip.x < input > output`
 
 Alternatively, the Python wrapper can be used to set up and run PIPPy. The Python script
 requires the Mako Templates module (see [https://www.makotemplates.org/]). The user then
 sets up a key/pair list using the keywords defined for the standard input in II.A and
-runs (ideally with Python 3.0 or later):
+runs (ideally with Python 3.0 or later):\
    `python pip.py input.py`
 
 The Python script will generate the required Fortran input file (named input), run the
@@ -50,32 +44,31 @@ PIPPy requires a standard input file and at least one data file. All input files
 ### II.A. STANDARD INPUT
 
 The standard input file contains a series of records, each a single line of input parameters. Below is a list of each record and associated parameters, with data type in parentheses.\
-Key: dp = double precision, int = integer, char*n = character*n, log = logical
+Key: dp = double precision, int = integer, char * _n_ = character * _n_, log = logical
 
 
 **Record 1**: DataTrain  DataTest [Example: train.dat test.dat]\
         DataTrain (char*10): Filename of the in sample (training) data file\
         DataTest (char*10): Filename of the out of sample (test) data file\
-        Notes: The required format for the data files is given in Section II.B.\
+        **Note:** The required format for the data files is given in Section II.B.\
                If DataTest is set to "none", no test set evaluation is made.
 
 **Record 2**: NumWrite  Units [Example: 2 10 12]\
-        NumWrite (int): Number of extra output files to write\
-        Notes: If NumWrite = -1, no extra output files are written.\
-               If NumWrite = 0, all output files are written.\
-               If NumWrite &gt; 0, read a list of NumWrite extra output files.\
-        Units[NumWrite] (int): List of additional output files to write.\
-                1 : Write additional debug information to the standard output\
-               10 : (basisinfo.dat) Write detailed basis set information\
-               11 : (vtrain.dat) Compare ab intio training energies and fitted energies\
-               12 : (vtest.dat) Compare ab intio test energies and fitted energies\
-               20 : (xmat.dat) Write the X matrix containing the symmetrized basis\
-                    functions (columns) evaluated for the training data (rows)
+	NumWrite (int): Number of extra output files to write\
+		= -1, no extra output files are written.\
+		= 0, all output files are written.\
+		&gt; 0, read a list of NumWrite extra output files.\
+	Units[NumWrite] (int): List of additional output files to write.\
+		 1 : Write additional debug information to the standard output\
+		10 : (basisinfo.dat) Write detailed basis set information\
+		11 : (vtrain.dat) Compare ab intio training energies and fitted energies\
+		12 : (vtest.dat) Compare ab intio test energies and fitted energies\
+		20 : (xmat.dat) Write the X matrix containing the symmetrized basis functions (columns) evaluated for the training data (rows)
 
 **Record 3**: RangeParameter  RefEnergy [Example: 100. 15.]\
         RangeParameter (dp): Range parameter used in the training and test set weight function\
         RefEnergy (dp): Reference energy used in the training and test set weight function\
-        Note: Reasonable choices for RefEnergy include the binding energy for van der Waals systems and the saddle point energy for reactive systems, while RangeParameter describes the energy range required for the intended application.
+        **Note:** Reasonable choices for RefEnergy include the binding energy for van der Waals systems and the saddle point energy for reactive systems, while RangeParameter describes the energy range required for the intended application.
 
 **Record 4**: NumRanges  EnergyRanges [Example: 3 300. 150. 50.]\
         NumRange (int): Number of energy limits to consider when reporting averaged errors.
@@ -100,7 +93,7 @@ Key: dp = double precision, int = integer, char*n = character*n, log = logical
                 1 : Remove unconnected terms\
                 2 : Remove unconnected and intramolecular-only terms\
                 3 : Remove intramolecular-only terms\
-        Note: When IMode != 0, one or more fragment groups must be assigned in Records 9 and 10.
+        **Note:** When IMode != 0, one or more fragment groups must be assigned in Records 9 and 10.
 
 **Record 9**: NumChannels [Example: 1]\
         NumChannels (int): Number of fragment channels
@@ -143,7 +136,7 @@ Record 2:                   natom   ! Number of atoms\
 Record 3:                   iconfig   dummy   vai  ! Index, dummy(not used), ab initio energy\
 Record 4 to 4+natom:        symb   x   y   z ! Atomic symbol, Cartesian coordinates\
 Repeat records 2-4+natom nconfigs times.\
-Notes: Units are never converted such that the generated expansions should provide energies and forces in the same units as the training data. One caveat: The Morse range parameter is hard coded as unity in whatever units are used for the geometry in the training data. This choice is more appropriate when using Angstroms than when using other units for distance.
+**Note:** Units are never converted such that the generated expansions should provide energies and forces in the same units as the training data. One caveat: The Morse range parameter is hard coded as unity in whatever units are used for the geometry in the training data. This choice is more appropriate when using Angstroms than when using other units for distance.
 
 An example of a training data file for CH4 + H:
 

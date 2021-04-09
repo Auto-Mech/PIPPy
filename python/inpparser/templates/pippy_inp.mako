@@ -1,5 +1,5 @@
 ${DataTrain}   ${DataTest}					##Record 1
-${NumWrite}   ${ITmp}						##Record 2
+${NumWrite}   ${Units}						##Record 2
 ${RangeParameter}   ${RefEnergy}				##Record 3
 ${NumRanges}   ${EnergyRanges}					##Record 4
 ${NumAtoms}							##Record 5

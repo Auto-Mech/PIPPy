@@ -6,8 +6,8 @@ Functions to parse PIPPy input
 from ._input import read_data_train
 from ._input import read_data_test
 from ._input import read_num_write
-from ._input import read_itmp
-from ._input import read_energy_units
+from ._input import read_units
+#from ._input import read_energy_units
 from ._input import read_range_parameter
 from ._input import read_ref_energy
 from ._input import read_num_ranges
@@ -24,6 +24,10 @@ from ._input import read_imode
 from ._input import read_num_channels
 from ._input import read_fragment_groups
 from ._input import check_functional_form_keywords
+#Fortran Execute
+from ._input import read_use_cl
+from ._input import read_comm_line
+from ._input import check_fort_exec_keywords
 
 #Input File
 from . import inp_setup
@@ -39,7 +43,7 @@ __all__ = [
     'read_data_train',
     'read_data_test',
     'read_num_write',
-    'read_itmp',
+    'read_units',
     'read_energy_units',
     'read_range_parameter',
     'read_ref_energy',
@@ -55,5 +59,8 @@ __all__ = [
     'read_mode',
     'read_num_channels',
     'read_fragment_groups',
-    'check_functional_form_keywords'
+    'check_functional_form_keywords',
+    'read_use_cl',
+    'read_comm_line',
+    'check_fort_exec_keywords'
 ]

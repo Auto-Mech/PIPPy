@@ -2,8 +2,8 @@
 python input writer for PIPPy
 """
 
-from pyfit import pippy_driver
+from pyfit import pippy
 
 __all__ = [
- 'pippy_driver'
+ 'pippy'
 ]

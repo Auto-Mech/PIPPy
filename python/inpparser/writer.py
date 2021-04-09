@@ -12,7 +12,7 @@ SRC_PATH = os.path.dirname(os.path.realpath(__file__))
 TEMPLATE_PATH = os.path.join(SRC_PATH, 'templates')
 
 
-def pippy_input(data_train, data_test, num_write, itmp, energy_units, 
+def pippy_input(data_train, data_test, num_write, units, #energy_units, 
         range_parameter, ref_energy, num_ranges, energy_ranges, 
         num_atoms, symbols, atom_groups, read_basis, factor_order, total_order,
         imode, num_channels, fragment_groups):
@@ -24,8 +24,8 @@ def pippy_input(data_train, data_test, num_write, itmp, energy_units,
         "DataTrain": data_train,
         "DataTest": data_test,
         "NumWrite": num_write,
-        "ITmp": itmp,
-        "EnergyUnits": energy_units,
+        "Units": units,
+#        "EnergyUnits": energy_units,
 	"RangeParameter": range_parameter,
 	"RefEnergy": ref_energy,
 	"NumRanges": num_ranges,

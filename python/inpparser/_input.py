@@ -22,19 +22,21 @@ from .pattern import NEWLINE
 
 INPUT_SUPPORTED_SECTIONS = [
     'training_data',
-    'functional_form'
+    'functional_form',
+    'fortran_execution'
 ]
 INPUT_REQUIRED_SECTIONS = [
     'training_data',
-    'functional_form'
+    'functional_form',
+    'fortran_execution'
 ]
 
 TD_SUPPORTED_KEYWORDS = [
     'DataTrain',
     'DataTest',
     'NumWrite',
-    'ITmp',
-    'EnergyUnits',
+    'Units',
+#    'EnergyUnits',
     'RangeParameter',
     'RefEnergy',
     'NumRanges',
@@ -51,12 +53,15 @@ FF_SUPPORTED_KEYWORDS = [
     'NumChannels',
     'FragmentGroups',
 ]
+FE_SUPPORTED_KEYWORDS = [
+    'UseCL',
+    'CommandLine'
+]
 
 TD_REQUIRED_KEYWORDS = [
     'DataTrain',
     'DataTest',
     'NumWrite',
-    'EnergyUnits',
     'RangeParameter',
     'RefEnergy',
     'NumRanges',
@@ -72,6 +77,9 @@ FF_REQUIRED_KEYWORDS = [
     'IMode',
     'NumChannels',
     'FragmentGroups',
+]
+FE_REQUIRED_KEYWORDS = [
+    'UseCL'
 ]
 
 #### GENERAL FUNCTIONS ####
@@ -105,7 +113,8 @@ def _get_integer_line(input_string,check_string,num_inputs):
         )
     section = first_capture(pattern, input_string)
 
-    assert section is not None
+    if section is None:
+        section = ' '
 
     return section
 
@@ -170,13 +179,13 @@ def read_num_write(input_string):
 
     return keyword
 
-## ITmp (list of output units)
-def read_itmp(input_string,num_write):
+## Units (list of output units)
+def read_units(input_string,num_write):
     """ list of output units
     """
-    inp_line = _get_integer_line(input_string,'ITmp',num_write)
+    inp_line = _get_integer_line(input_string,'Units',num_write)
 
-    assert inp_line is not None
+#    assert inp_line is not None
     out=' '.join(inp_line)
 
     return out
@@ -409,7 +418,53 @@ def _get_functional_form_section(input_string):
 
     return section
 
-# Functions to check for errors in the input file
+#### FORTRAN EXECUTION FUNCTIONS ####
+## Read Use Command Line Flag
+def read_use_cl(input_string):
+    """ read in use command line flag
+    """
+
+    pattern = ('UseCL' +
+               one_or_more(SPACE) + capturing(LOGICAL))
+    block = _get_fort_exec_section(input_string)
+
+    keyword = first_capture(pattern, block)
+
+    assert keyword is not None
+
+    return keyword
+
+## Command Line
+def read_comm_line(input_string):
+    """ 
+    """
+    pattern = ('CommandLine' +
+               one_or_more(SPACE) + #capturing(one_or_more(NONSPACE)))
+               capturing(one_or_more(WILDCARD, greedy=True)))
+
+    block = _get_fort_exec_section(input_string)
+
+    keyword = first_capture(pattern, block)
+
+    assert keyword is not None
+
+    return keyword
+
+## Read Fortran_Execution Section
+def _get_fort_exec_section(input_string):
+    """ grabs the section of text containing all of the job keywords
+        for running the Fortran code
+    """
+    pattern = (escape('$fortran_execution') + LINE_FILL + NEWLINE +
+               capturing(one_or_more(WILDCARD, greedy=False)) +
+               escape('$end'))
+    section = first_capture(pattern, input_string)
+
+    assert section is not None
+
+    return section
+
+#### FUNCTIONS TO CHECK KEYWORDS IN INPUT FILE
 
 def check_training_data_keywords(input_string):
     """ obtains the keywords defined in the input by the user
@@ -448,6 +503,28 @@ def check_functional_form_keywords(input_string):
         raise NotImplementedError
 
     print("Functional Form Input:")
+    print(section_string)
+
+
+def check_fort_exec_keywords(input_string):
+    """ obtains the keywords defined in the input by the user
+    """
+    section_string = _get_fort_exec_section(input_string)
+    defined_keywords = _get_defined_keywords(section_string)
+
+    # Check if keywords are supported
+    if not all(keyword in FE_SUPPORTED_KEYWORDS
+               for keyword in defined_keywords):
+        raise NotImplementedError
+#        print(str(keyword)+"not a supported keyword")
+
+    # Check if elements of keywords
+    if not all(keyword in defined_keywords
+               for keyword in FE_REQUIRED_KEYWORDS):
+        raise NotImplementedError
+#        print("Required keyword "+str(keyword)+"not found in input file")
+
+    print("Fortran Execution Input:")
     print(section_string)
 
 
