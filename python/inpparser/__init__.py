@@ -33,7 +33,7 @@ from ._input import check_fort_exec_keywords
 from . import inp_setup
 from . import writer
 
-#Autoparser
+#Autoparser: modified from https://github.com/Auto-Mech/autoio
 from . import pattern
 from . import find
 from ._conv import cast
