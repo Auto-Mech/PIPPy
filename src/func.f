@@ -36,14 +36,14 @@ c read
       if (lwrite(1)) ldebug=.true.             ! print some extra information
 
       IF (my_id.eq.0) THEN
-      read(5,*)natom                            ! RECORD 5
-      read(5,*)(symb(k),k=1,natom)              ! RECORD 6
-      read(5,*)(iagroup(k),k=1,natom)           ! RECORD 7
-      read(5,*)lreadbasis,ipow,ipowt,imode      ! RECORD 8
+      read(5,*)natom
+      read(5,*)(symb(k),k=1,natom)
+      read(5,*)(iagroup(k),k=1,natom)
+      read(5,*)lreadbasis,ipow,ipowt,imode
       write(6,'(100("*"))')
       write(6,*)
       if (lreadbasis) then
-        write(6,*)" Reading the PIP",ipow,ipowt," basis"
+        write(6,*)"Reading the PIP",ipow,ipowt," basis"
       else
         write(6,'(a,2i5,a)')" Generating a PIP",ipow,ipowt,
      &   " basis and writing it to basis.dat"
@@ -85,6 +85,9 @@ c       linter = use intermolecular distances only?
       write(6,*)
       ENDIF
 
+      if (my_id.eq.0.and.nproc.gt.1) 
+     & write(6,'(1x,a,i10,a,/)')"Distributing job over ",nproc," cores"
+
       call MPI_BARRIER(MPI_COMM_WORLD, ierr)
       call MPI_BCAST(natom, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
       call MPI_BCAST(symb,natom, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
@@ -99,13 +102,13 @@ c       linter = use intermolecular distances only?
 
       if (lnounc.or.lnointra.or.linter) then
       IF (my_id.eq.0) THEN
-        read(5,*)nchan                          ! RECORD 9
+        read(5,*)nchan
         if (nchan.gt.maxchan) then
           write(6,*)" nchan (",nchan,") > maxchan (",maxchan,")"
           stop
         endif
         do i=1,nchan
-          read(5,*)(changroup(i,k),k=1,natom)   ! RECORDS 10+
+          read(5,*)(changroup(i,k),k=1,natom)
         enddo
       ENDIF
       call MPI_BCAST(nchan, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
@@ -177,12 +180,6 @@ c       linter = use intermolecular distances only?
       write(6,'(1x,a8,100a5)')"Symbol",(symb(i),i=1,natom)
       write(6,'(a8,100i5)')"Index",(i,i=1,natom)
       write(6,'(a8,100i5)')"Group",(iagroup(i),i=1,natom)
-      if (lnounc.or.lnointra.or.linter) then
-        write(6,'(3x,a)')"Fragment Channels"
-        do i=1,nchan
-          write(6,'(2x,i5,a,100i5)')i," :",(changroup(i,j),j=1,natom)
-        enddo
-      endif
       ENDIF
 
       if (lnointra.or.lnounc.or.linter) then
@@ -242,6 +239,21 @@ c generate atom permutation lists
         ntmp=ntmp*(nperm1(i)-nperm0(i)+1)
       enddo
 
+      if (my_id.eq.0) 
+     &    write(6,'(3x,a,i10,/)')"Number of permutations = ",ntmp
+      if ((lnounc.or.lnointra.or.linter).and.my_id.eq.0) then
+        write(6,'(3x,a)')"Fragment Channels"
+        do i=1,nchan
+          write(6,'(1x,i5,a,100i5)')i," :",(changroup(i,j),j=1,natom)
+        enddo
+      endif
+
+      if (ntmp.gt.maxperm) then
+        IF (my_id.eq.0) 
+     &    print *,"npermute (",ntmp,") > maxperm (",maxperm,")"
+        stop
+      endif
+
       npermute=0
       do while (.true.)
         npermute=npermute+1
@@ -278,11 +290,12 @@ c generate atom permutation lists
       write(6,*)
       write(6,*)'Atom permutations = ',npermute
       do i=1,min(npermute,50) ! print up to 50 permutations
-        write(6,'(i7,a,1000i5)')i," :",(iatom(i,j),j=1,natom)
+        write(6,'(i6,a,1000i5)')i," :",(iatom(i,j),j=1,natom)
       enddo
       if (npermute.gt.50) write(6,*)" ** Truncating list **"
       endif
       if (lwrite(10)) then
+      open(10,file="basisinfo.dat")
       write(10,*)
       write(10,*)'Atom permutations = ',npermute
       do i=1,npermute
@@ -350,7 +363,7 @@ c generate atom permutation lists
           enddo
         enddo
         IF (my_id.eq.0) THEN
-        if (ii.le.50.and.ldebug) write(6,'(i7,a,1000i10)')
+        if (ii.le.50.and.ldebug) write(6,'(i6,a,1000i10)')
      &     ii," :",(ix(ii,iix),iix=1,npairs)
         if (lwrite(10)) write(10,'(i7,a,1000i10)')
      &     ii," :",(ix(ii,iix),iix=1,npairs)
@@ -449,10 +462,14 @@ ccccc MPI DO LOOP
 
       call MPI_BARRIER(MPI_COMM_WORLD, ierr)
       if (my_id.eq.0) tl2=MPI_WTIME()
-      call MPI_ALLREDUCE(ifailmpi, ifail, nterm, MPI_INTEGER,
-     &                   MPI_SUM, MPI_COMM_WORLD, ierr)
-      call MPI_ALLREDUCE(ibmpi, ib, nterm, MPI_INTEGER, 
-     &                   MPI_SUM, MPI_COMM_WORLD, ierr)
+c      call MPI_ALLREDUCE(ifailmpi, ifail, nterm, MPI_INTEGER,
+c     &                   MPI_SUM, MPI_COMM_WORLD, ierr)
+c      call MPI_ALLREDUCE(ibmpi, ib, nterm, MPI_INTEGER, 
+c     &                   MPI_SUM, MPI_COMM_WORLD, ierr)
+      call MPI_REDUCE(ifailmpi, ifail, nterm, MPI_INTEGER,
+     &                   MPI_SUM, 0, MPI_COMM_WORLD, ierr)
+      call MPI_REDUCE(ibmpi, ib, nterm, MPI_INTEGER, 
+     &                   MPI_SUM, 0, MPI_COMM_WORLD, ierr)
 
       DO ii=1,nterm
         if (ifail(ii).eq.0) then
@@ -563,12 +580,12 @@ c     remove unconnected and intramolecular only terms if required
         else
           write(6,*)"Updating group types for fragment channel ",m
         if (lnointra)
-     &    write(6,*)"Found ",nbadi," new intramolecular-only terms"
+     &    write(6,*)"Found ",nbadi," intramolecular-only terms"
         if (lnointra)
-     &    write(6,*)"The total number of intramolecular-only ",
+     &    write(6,*)"The total number of intramolecular-only",
      &              "groups is now ",nin
         if (lnounc)
-     &    write(6,*)"Found ",nbadu," new unconnected terms"
+     &    write(6,*)"Found ",nbadu," unconnected terms"
         if (lnounc)
      &    write(6,*)"The total number of unconnected groups is now ",nun
         endif
@@ -604,11 +621,11 @@ c     remove unconnected and intramolecular only terms if required
         write(6,*)
         write(6,*)"Removing these groups results in the",
      & " following reductions:"
-        write(6,'(a,i10,a,i10,a,f15.3,a)')
-     &             " Terms:  ",nt," --> ",nterm," ("
+        write(6,'(a,i10,a,i10,a,i10,a,f15.3,a)')
+     &             " Terms:  ",nt,"  - ",nt-nterm," = ",nterm," ("
      &             ,(dble(nterm)/dble(nt)*100.)," % )"
-        write(6,'(a,i10,a,i10,a,f15.3,a)')
-     &             " Groups: ",nb," --> ",nbasis," ("
+        write(6,'(a,i10,a,i10,a,i10,a,f15.3,a)')
+     &             " Groups: ",nb,"  - ",nb-nbasis," = ",nbasis," ("
      &             ,(dble(nbasis)/dble(nb)*100.)," % )"
         ENDIF
       ENDIF
@@ -682,7 +699,6 @@ ccc READ BASIS ccc
 
       do j=1,npairs
         r(j)=dexp(-rrr(iii,j))
-!        r(j)=dexp(-rrr(iii,j)*autoang)
       enddo
 
       do i=1,nterm
@@ -693,7 +709,7 @@ ccc READ BASIS ccc
         basis(ibasis(i))=basis(ibasis(i))+arg
 !        do j=1,npairs
 !          dbasisdr(ibasis(i),j)=dbasisdr(ibasis(i),j)   ! dV/dy * dy/dr
-!     &                         -arg*dble(ind(i,j))*autoang
+!     &                         -arg*dble(ind(i,j))
 !        enddo
       enddo
 

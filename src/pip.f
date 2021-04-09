@@ -32,9 +32,11 @@ ccccc MPI
         timestart=MPI_WTIME()
 c        write(6,*)"Began at ",timestart
       ENDIF
+!      write(6,"(a, i3)") " MPI current proc: ", my_id
 
       IF (my_id.eq.0) THEN
 !      write(6,"(a, i3)") " MPI num procs: ", nprocs
+
       lcust = .false.
       lcust = .true. ! turn on nonstandard options
 
@@ -46,27 +48,13 @@ c        write(6,*)"Began at ",timestart
      & " 2021"
       write(6,*)
 
-      read(5,*)datafit,datatest                 ! RECORD 1
-      read(5,*)nwrite,(itmp(j),j=1,nwrite)      ! RECORD 2
-      read(5,*)epsilon,vvref                    ! RECORD 3
-      read(5,*)ncut,(cut(j),j=1,ncut)           ! RECORD 4
+      read(5,*)datafit,datatest
+      read(5,*)nwrite,(itmp(j),j=1,nwrite)
+      read(5,*)epsilon,vvref
+      read(5,*)ncut,(cut(j),j=1,ncut)
       ENDIF
 
-      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(datafit, 1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(datatest,1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(nwrite, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(itmp, nwrite, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(epsilon, 1, MPI_DOUBLE_PRECISION, 0,
-     &               MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(vvref, 1, MPI_DOUBLE_PRECISION, 0,
-     &               MPI_COMM_WORLD, ierr)
-!      call MPI_BCAST(lwrite,nwrite+2,MPI_LOGICAL,0,MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(ncut, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(cut, ncut, MPI_DOUBLE_PRECISION, 0, 
-     &               MPI_COMM_WORLD, ierr)
-
-      if (nwrite.eq.0) then
+      if (nwrite.eq.-1) then
         do i=1,100
           lwrite(i)=.true.
         enddo
@@ -79,11 +67,21 @@ c        write(6,*)"Began at ",timestart
         enddo
       endif
 
+      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(datafit, 1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(datatest,1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(epsilon, 1, MPI_DOUBLE_PRECISION, 0,
+     &               MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(vvref, 1, MPI_DOUBLE_PRECISION, 0,
+     &               MPI_COMM_WORLD, ierr)
+!      call MPI_BCAST(lwrite,nwrite+2,MPI_LOGICAL,0,MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(ncut, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(cut, ncut, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+
       call prepot ! generate or read basis
 
-c      IF (.false.) THEN ! Not fitting function for now
+c      IF (.false.) THEN ! To not fit function
       IF (my_id.eq.0) THEN
-!      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
       ncoef=nncoef
  
       open(7,file=datafit)
@@ -153,6 +151,10 @@ c      IF (.false.) THEN ! Not fitting function for now
       vvimin=1d50
       vvxmin=1d50
       open(56,file="coef.dat")
+      if (lwrite(20)) open(20,file="xmat.dat")
+      if (lwrite(20)) write(20,*)" INDEX SIGMA VAI BASIS(1...NCOEF)"
+      if (lwrite(11)) open(11,file="vtrain.dat")
+      if (lwrite(11)) write(11,'(a10,3a18)')"INDEX","SIGMA","VAI","VFIT"
       do i=1,ndat
         call funcs1(i,basis,ncoef) 
         vvx=0.d0
@@ -252,6 +254,8 @@ c     test set
       err3=0.d0
       ndat3=0
       wn=0.d0
+      if (lwrite(12)) open(12,file="vtest.dat")
+      if (lwrite(12)) write(12,'(a10,3a18)')"INDEX","SIGMA","VAI","VFIT"
       do i=1,ndat
         call funcs1(i,basis,ncoef)
         vvx=0.d0
@@ -277,7 +281,7 @@ c     test set
       ix=1
       if (ncut.gt.1) ix=2 
       write(6,*) 
-      write(6,*) "Summary:",ncoef,erra(ix),err3
+      write(6,*) "summary",ncoef,erra(ix),err3
       write(6,*) 
       endif
  

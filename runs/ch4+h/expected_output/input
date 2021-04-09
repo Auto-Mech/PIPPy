@@ -1,0 +1,10 @@
+train.dat   test.dat					##Record 1
+2   10 12						##Record 2
+100.   15.				##Record 3
+3   300. 150. 50.					##Record 4
+6							##Record 5
+C H H H H H  							##Record 6
+1 2 2 2 2 2	        					##Record 7
+F   2 2   1		##Record 8
+1							##Record 9
+1 1 1 1 2 2						##Record 10

@@ -1,153 +1,190 @@
-# Autofit
-## A Fortran code for automatically fitting permutationally invariant polynomials
+# PIPPy
+## A Python and Fortran code for automatically fitting permutationally invariant polynomials
 
 ## Authors
-Daniel R. Moberg\
-Ahren W. Jasper\
-Argonne National Laboratory, 2021
-
+Daniel R. Moberg and Ahren W. Jasper\
+Argonne National Laboratory, 2021\
+Web: github.com/Auto-Mech/PIPPy\
 Email: ajasper@anl.gov
 
+References:\
+(1) D. R. Moberg and A. W. Jasper, PIPPy, Argonne National Laboratory, 2021.\
+(2) D. R. Moberg and A. W. Jasper, Permutationally invariant polynomial expansions with unrestricted complexity, J. Chem. Thoery Comput., submitted (2021)
+
 ---------------------------------------------------------------------------------------
-## I. Installation
-### 1. Install Fortran code
+## I. DISTRIBUTION AND INSTALLATION
 
-The Fortran code is located in the src/ directory, along with a compile script:\
-  ./compile.sh in `autofit/src`
+PIPPy is distributed with four subdirectories:\
+    doc/	Contains this manual in txt format\
+    python/	Contains the Python wrapper\
+    runs/	Contains several example input and output files\
+    src/	Contains the Fortran code and a compilation script named compile.sh
 
-Example input and output can be found in:\
-  `autofit/examples/`
+To install PIPPy, first compile the Fortran executable by running ./compile.sh in the
+src/ directory. The compiled executable is named pip.x and appears in the src/ directory.
 
-### 2. PIPPy
-PIPPy is an optional Python wrapper for generating autofit input files.
-Example input can be found in:
-  `autofit/examples/pippy/`
+The Fortran code can be run independently of the Python wrapper with a properly prepared
+input file. An example of running a parallel executable is:\
+   `mpiexec -n 36 src/pip.x < input > output`
 
-Note: Mako Templates module for Python is required, see [https://www.makotemplates.org/]
+Alternatively, the Python wrapper can be used to set up and run PIPPy. The Python script
+requires the Mako Templates module (see [https://www.makotemplates.org/]). The user then
+sets up a key/pair list using the keywords defined for the standard input in II.A and
+runs (ideally with Python 3.0 or later):\
+   `python pip.py input.py`
+
+The Python script will generate the required Fortran input file (named input), run the
+code, and collect the standard output in the file named "output".
 
 ---------------------------------------------------------------------------------------
 ## II. INPUT FILES
 
-Autofit requires a primary input file, here called fit.in. It also reads data from files containing training and test sets. These files should be located in the same directory the program is run and their names are specified in Record 1 of fit.in.
+PIPPy requires a standard input file and at least one data file. All input files should appear in the runtime directory. 
 
-### 1. fit.in
+### II.A. STANDARD INPUT
 
-The Fortran input file contains a series of records, each a single line of input parameters.  Alternatively, input can be formatted in a more user-friendly file and converted with accompanying Python wrapper (located in /pippy). Below is a list of each record and associated parameters, with data type in parentheses.
+The standard input file contains a series of records, each a single line of input parameters. Below is a list of each record and associated parameters, with data type in parentheses.\
+Key: dp = double precision, int = integer, char * _n_ = character * _n_, log = logical
 
-Key:
-dp = double precision; int = integer; char * n = character * n; log = logical
-[] designates number of data entries if greater than 1
 
-**Record 1**: DataTrain  DataTest\
-training.dat  test.dat
-- files (char * 10): Names of the in-sample (training) and out-of-sample (test) data files
+**Record 1**: DataTrain  DataTest [Example: train.dat test.dat]\
+        DataTrain (char*10): Filename of the in sample (training) data file\
+        DataTest (char*10): Filename of the out of sample (test) data file\
+        **Note:** The required format for the data files is given in Section II.B.\
+               If DataTest is set to "none", no test set evaluation is made.
 
-**Record 2**: NumWrite  ITmp\
-nwrite  itmp[nwrite]
-- nwrite (int): flag for output files to write\
-   = 0:  all sections are written, itmp not read\
-   &gt; 0:  write output to unit 6 and each unit listed in itmp
-- itmp[nwrite] (int): list of units to write to. See III. OUTPUT FILES for key.
+**Record 2**: NumWrite  Units [Example: 2 10 12]\
+	NumWrite (int): Number of extra output files to write\
+		= -1, no extra output files are written.\
+		= 0, all output files are written.\
+		&gt; 0, read a list of NumWrite extra output files.\
+	Units[NumWrite] (int): List of additional output files to write.\
+		 1 : Write additional debug information to the standard output\
+		10 : (basisinfo.dat) Write detailed basis set information\
+		11 : (vtrain.dat) Compare ab intio training energies and fitted energies\
+		12 : (vtest.dat) Compare ab intio test energies and fitted energies\
+		20 : (xmat.dat) Write the X matrix containing the symmetrized basis functions (columns) evaluated for the training data (rows)
 
-**Record 3**: RangeParameter  RefEnergy\
-epsilon vvref
-- epsilon (dp): Range parameter for weight function
-- vvref (dp): Reference energy for weight function
-For more info, see Jasper and Davis, JPCA, 123(16), 3464, (2019)
+**Record 3**: RangeParameter  RefEnergy [Example: 100. 15.]\
+        RangeParameter (dp): Range parameter used in the training and test set weight function\
+        RefEnergy (dp): Reference energy used in the training and test set weight function\
+        **Note:** Reasonable choices for RefEnergy include the binding energy for van der Waals systems and the saddle point energy for reactive systems, while RangeParameter describes the energy range required for the intended application.
 
-**Record 4**: NumRanges  EnergyRanges\
-nc  cut[1] cut[2] cut[3] ... cut[nc]
-- nc (int): Number of energy ranges
-- cut[nc] (dp): Values of ranges with cut[1] > cut[2] > ... > cut[nc]
+**Record 4**: NumRanges  EnergyRanges [Example: 3 300. 150. 50.]\
+        NumRange (int): Number of energy limits to consider when reporting averaged errors.
+        EnergyRange[NumRange] (dp): Values of energy range limits.
 
-**Record 5**: NumAtoms\
-natom
-- natom (int): Number of atoms in system
+**Record 5**: NumAtoms [Example: 6]\
+        NumAtoms (int): Number of atoms
 
-**Record 6**: Symbols\
-symb[1] symb[2] ... symb[natom]
-- symb(natom) (char * 2): Atom symbol for each atom
+**Record 6**: Symbols [Example: C H H H H  H]\
+        Symbols[NumAtoms] (char*2): Atomic symbol for each atom
 
-**Record 7**: AtomGroups\
-iagroup[1] iagroup[2] ... iagroup[natom]
-- iagroup[natom] (int): Atom group for each atom
+**Record 7**: AtomGroups [Example: 1 2 2 2 2  2]\
+        AtomGroups[NumAtoms] (int): Atomic permutation group for each atom
 
-**Record 8**: ReadBasis, FactorOrder, TotalOrder, IMode\
-lreadbasis  ipow ipowt  imode
-- lreadbasis (log)
-    = TRUE: read basis from basis.dat  
-    = FALSE: compute basis and write to basis.dat
-- ipow (int): Maximum allowed order for a single factor in a term
-- ipowt (int): Maximmum total order allowed for a term
-- imode (int): Sets the mode for generating the PIP expansion\
-    = -1: Use intermolecular terms only\
-    =  0: Use all terms in PIP expansion\
-    =  1: Remove unconnected terms from basis\
-    =  2: Remove unconnected terms and intramolecular-only terms from basis\
-    =  3: Remove intramolecular-only terms from basis
+**Record 8**: ReadBasis  FactorOrder  TotalOrder  IMode [Example: F 6 6 1]\
+        ReadBasis (logical): Set to TRUE to read the basis from basis.dat. Otherwise the basis is generated and written to basis.dat.\
+        FactorOrder (int): Maximum allowed order for a single factor\
+        TotalOrder (int): Maximum total order allowed for a term\
+        IMode (int): Controls various choices for generating the PIP expansion\
+               -1 : Use intermolecular distances only when generating terms\
+                0 : Use all PIP terms\
+                1 : Remove unconnected terms\
+                2 : Remove unconnected and intramolecular-only terms\
+                3 : Remove intramolecular-only terms\
+        **Note:** When IMode != 0, one or more fragment groups must be assigned in Records 9 and 10.
 
-**Record 9**: NumChannels\
-numfragchan
-- numfragchan (int): Number of fragment channels to consider
+**Record 9**: NumChannels [Example: 1]\
+        NumChannels (int): Number of fragment channels
 
-**Record 10**: FragmentGroups\
-fgroup[natom]
-- fgroup[natom] (int): Molecular groups in the product system(s)
+**Record 10**: FragmentGroups [Example: 1 1 1 1 2  2]\
+        FragmentGroups[NumAtoms] (int): Fragment group assignments
 
-### 2. ai.all, ai.test
+An example of the standard input for CH4 + H = CH3 + H2:
 
-These files contain the training and test sets of the systems. Autofit does not include functionality for creating these files, which is left up to the decision of the user. The format for both files are the same:
+ train.dat  test.dat           ! Training (in sample) and test (out of sample) data sets\
+ 2 10 12                       ! Write two extra output files: basisinfo.dat and vtest.dat\
+ 120. 15.                      ! Range parameter & reference energy used for weigting the data sets\
+ 3 300. 150. 50.               ! Report weighted RMS errors for the energy ranges 300-150, 150-50, and &gt; 50.\
+ 6                             ! Number of atoms\
+ C H H H H  H                  ! Atom labels\
+ 1 2 2 2 2  2                  ! Exchange all H atoms\
+ F 6 6 1                       ! Generate a PIP66 basis and exclude unconnected terms\
+ 1                             ! Define one molecular fragment channel\
+ 1 1 1 1 2  2                  ! Remove unconnected terms for CH3 + H2
 
-Line 1:                     nconfig\
-Line 2:                     natom\
-Line 3:                     config#   dummy   V/cm-1\
-Line 4 to 4+natom:      symb   x   y   z\
-Repeat lines 2-4+natom for nconfigs.
+An example of the standard input for parametrizing the intermolecular energy of HO2 + N2:
 
-Example files can be found in each example system in:\
-  autofit/examples/
+ ai.all ai.test                ! Training (in sample) and test (out of sample) data sets\
+ -1                            ! Output control flags\
+ 650. -650.                    ! Range parameter & reference energy used for weigting the data sets\
+ 4 12000. 4000. 0. -100.       ! Energy ranges for error analysis\
+ 5                             ! Number of atoms\
+ O O H  N N                    ! Atom labels\
+ 1 1 2  3 3                    ! Atomic permutation group assignments\
+ F 3 3 1                       ! Read basis?, xi\_factor xi\_order defining the PIP expansion, expansion type\
+ 1                             ! Number of fragment channels\
+ 1 1 1  2 2                    ! Fragment channel assignment
+
+### II.B. TRAINING AND TEST SETS
+
+These data files contain the training and test sets. PIPPy does not currently include functionality for creating these files. Both files follow the same format:
+
+Record 1:                   nconfig ! Number of data\
+Record 2:                   natom   ! Number of atoms\
+Record 3:                   iconfig   dummy   vai  ! Index, dummy(not used), ab initio energy\
+Record 4 to 4+natom:        symb   x   y   z ! Atomic symbol, Cartesian coordinates\
+Repeat records 2-4+natom nconfigs times.\
+**Note:** Units are never converted such that the generated expansions should provide energies and forces in the same units as the training data. One caveat: The Morse range parameter is hard coded as unity in whatever units are used for the geometry in the training data. This choice is more appropriate when using Angstroms than when using other units for distance.
+
+An example of a training data file for CH4 + H:
+
+ 252889\
+           6\
+           1   10.560402393341064        53.686826233325540\
+ C    1.5173673060615555E-002   4.4702465630787759E-002  -1.4358965674743889E-002\
+ H   0.91590037301702620       0.90465104728081480      -0.20951100564292088\
+ H  -0.76584954941485162       0.47045512915600951       0.71197774484952547\
+ H   0.33813250754609325       -1.0217171694056011       0.43081043111330708\
+ H  -0.66885366253257239      -0.88565362397310610      -0.76230742051520683\
+ H    0.0000000000000000        0.0000000000000000        10.560402393341064\
+           6\
+           2   10.570185661315918        59.077923490250427\
+ C    4.9995719662588062E-002   1.9433570273590349E-002  -5.6145657920771551E-002\
+ H   0.54699863563179474      -0.51274152448620047       0.86368685674454160\
+ H   -1.3059409910751345      -0.40217994502678356       0.36928993237443070\
+ H    8.5167241702765351E-002 -0.56611080900603028      -0.98537152036295583\
+ H    7.8484625857204948E-002   1.2496400791956357       0.42091148271299739\
+ H    0.0000000000000000        0.0000000000000000        10.570185661315918\
+etc...
 
 ---------------------------------------------------------------------------------------
 ## III. OUTPUT FILES
 
-In general, three files are created upon running autofit. Example output files
-can be found in each example system in:\
-  autofit/examples/
+By default three files are created upon running PIPPy. Additional output files can be written using the options in Record 2 of the standard input.
 
-### 1. fit.out
+### III.A. Standard output
 
-This is the primary output file. It lists the following info on the
-expansion generation:
-- Options selected (PIP size, Mode)
-- System info (Atoms, Groups, Fragment Channels, Permutations up to first 100)
-- Progress of symmetrization of expansion
-- Info on the number of unconnected and intramolecular-only terms removed (if these options are turned on)
-- Final size of basis, both terms and groups
+The standard output contains a variety of general information, including a progress
+counter for the symmetrization step. Additional debug output can be turned on by
+writing to unit 1 in Recrond 2 of the standard input.
 
-Following the expansion generation, info on the fitting procedure is provided:
-- Size of training set and number of configurations used in the fit
-- Weight function parameters used
-- Weighted errors found in test set for each cut specified in input
-- Comparison of low energy points found in data and fit
-- Out of sample test set error
-- Last line contains a summary: Number of coefficients in expansion, error below cut[2], total error
+### 2. basis.dat
 
-### 2. basis.out
+The first line lists the number of atoms, atom pairs, coefficients, and terms in the expansion. Following this is a list of each term, the group it belongs to, and the exponents for each term.
 
-The first line lists the number of atoms, atom pairs, coefficients, and terms
-in the expansion. Following this is a list of each term, the group it belongs to,
-and the exponents for each term.
+### III.C. coef.dat
 
-### 3. coef.dat
+A list of the coefficients optimized against the training data. Each line lists the group number followed by the coefficient's value.
 
-A list of the coefficients found from the fitting procedure. Each line lists the
-group number followed by the coefficient value.
+### III.D. Additional output
 
-### 4. Units
+These output files are turned on using Record 2 of the standard input.
 
-Unit 6 (standard output): General output to fit.in\
-Unit 1: Extra info included in standard output\
-Unit 10: Detailed info on basis\
-Unit 11: vfit vs vai for test set\
-Unit 12: vfit vs vai for training set\
-Unit 20: Generates x matrix
+ 10 : (basisinfo.dat) Write detailed basis set information, including bond distance labels\
+ 11 : (vtrain.dat) Compare ab intio training energies and fitted energies\
+ 12 : (vtest.dat) Compare ab intio test energies and fitted energies\
+ 20 : (xmat.dat) Write the X matrix containing the symmetrized basis\
+      functions (columns) evaluated for the training data (rows)
+
