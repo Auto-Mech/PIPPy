@@ -85,7 +85,7 @@ FE_REQUIRED_KEYWORDS = [
 #### GENERAL FUNCTIONS ####
 ## Read in a line of floats of varying length
 def _get_float_line(input_string,check_string,num_inputs):
-    """ grabs the line of text containing num inputs
+    """ grabs line of text containing floats
     """
     tmp = []
     for _ in range(int(num_inputs)):
@@ -102,7 +102,7 @@ def _get_float_line(input_string,check_string,num_inputs):
 
 ## Read in a line of integer of varying length
 def _get_integer_line(input_string,check_string,num_inputs):
-    """ grabs the line of text containing num inputs
+    """ grabs line of text containing integers
     """
     tmp = []
     for _ in range(int(num_inputs)):
@@ -120,7 +120,7 @@ def _get_integer_line(input_string,check_string,num_inputs):
 
 ## Read in a line of character strings of varying length
 def _get_string_line(input_string,check_string,num_inputs):
-    """ grabs the line of text containing num inputs
+    """ grabs line of text containing a string
     """
     tmp = []
     for _ in range(int(num_inputs)):
@@ -138,7 +138,7 @@ def _get_string_line(input_string,check_string,num_inputs):
 #### TRAINING DATA FUNCTIONS ####
 ## Training Data File
 def read_data_train(input_string):
-    """ 
+    """ read in training data file name
     """
     pattern = ('DataTrain' +
                one_or_more(SPACE) + capturing(one_or_more(NONSPACE)))
@@ -152,7 +152,7 @@ def read_data_train(input_string):
 
 ## Test Data File
 def read_data_test(input_string):
-    """ 
+    """ read in test data file name
     """
     pattern = ('DataTest' +
                one_or_more(SPACE) + capturing(one_or_more(NONSPACE)))  
@@ -166,7 +166,7 @@ def read_data_test(input_string):
 
 ## Number of Write Files
 def read_num_write(input_string):
-    """ read in units for output files
+    """ read in the number of output files
     """
 
     pattern = ('NumWrite' +
@@ -192,7 +192,7 @@ def read_units(input_string,num_write):
 
 ## Energy Units
 def read_energy_units(input_string):
-    """ 
+    """ read in units for energy values *not currently implemented*
     """
 
     pattern = ('EnergyUnits' +
@@ -207,7 +207,7 @@ def read_energy_units(input_string):
 
 ## Range Parameter
 def read_range_parameter(input_string):
-    """ 
+    """ read in the range parameter
     """
 
     pattern = ('RangeParameter' +
@@ -223,7 +223,7 @@ def read_range_parameter(input_string):
 
 ## Reference Energy
 def read_ref_energy(input_string):
-    """ 
+    """ read in the reference energy
     """
 
     pattern = ('RefEnergy' +
@@ -254,7 +254,7 @@ def read_num_ranges(input_string):
 
 ## Energy Ranges
 def read_energy_ranges(input_string,num_ranges):
-    """ obtain 
+    """ read in energy range values
     """
     inp_line = _get_float_line(input_string,'EnergyRanges',num_ranges)
 
@@ -280,7 +280,7 @@ def _get_training_data_section(input_string):
 #### FUNCTIONAL FORM FUNCTIONS ####
 ## Number of Atoms
 def read_num_atoms(input_string):
-    """ read in number of atoms 
+    """ read in number of atoms
     """
 
     pattern = ('NumAtoms' +
@@ -307,7 +307,7 @@ def read_symbols(input_string,natoms):
 
 ## Atom Groups
 def read_atom_groups(input_string,natoms):
-    """ 
+    """ read in atom groups
     """
 
     groups_line = _get_integer_line(input_string,'AtomGroups',natoms)
@@ -319,7 +319,7 @@ def read_atom_groups(input_string,natoms):
 
 ## Read Basis Flag
 def read_read_basis(input_string):
-    """ 
+    """ read in the read basis flag
     """
 
     pattern = ('ReadBasis' +
@@ -334,7 +334,7 @@ def read_read_basis(input_string):
 
 ## Factor Order
 def read_factor_order(input_string):
-    """ 
+    """ read in the factor order
     """
 
     pattern = ('FactorOrder' +
@@ -349,7 +349,7 @@ def read_factor_order(input_string):
 
 ## Total Order
 def read_total_order(input_string):
-    """ 
+    """ read in the total order
     """
 
     pattern = ('TotalOrder' +
@@ -364,7 +364,7 @@ def read_total_order(input_string):
 
 ## IMode (expansion options)
 def read_imode(input_string):
-    """ 
+    """ read in the value for IMode option
     """
 
     pattern = ('IMode' +
@@ -379,7 +379,7 @@ def read_imode(input_string):
 
 ## Number of Fragment Channels
 def read_num_channels(input_string):
-    """ 
+    """ read in the number of reaction channels defined by user
     """
 
     pattern = ('NumChannels' +
@@ -394,7 +394,7 @@ def read_num_channels(input_string):
 
 ## Fragment Groups
 def read_fragment_groups(input_string,natoms,num_channels):
-    """ 
+    """ read in the fragment groups for each channel
     """
 
     inp_line = _get_integer_line(input_string,'FragmentGroups',natoms)
@@ -436,7 +436,7 @@ def read_use_cl(input_string):
 
 ## Command Line
 def read_comm_line(input_string):
-    """ 
+    """ read in command line text
     """
     pattern = ('CommandLine' +
                one_or_more(SPACE) + #capturing(one_or_more(NONSPACE)))
