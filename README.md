@@ -104,31 +104,31 @@ Key: dp = double precision, int = integer, char * _n_ = character * _n_, log = l
 - **Record 10**: FragmentGroups [Example: 1 1 1 1 2  2]\
     - FragmentGroups[NumAtoms] (int): Fragment group assignments
 
-An example of the standard input for CH4 + H = CH3 + H2:
+An example of the standard input for CH4 + H &lt;=&gt; CH3 + H2:
 ```
- train.dat  test.dat           ! Training (in sample) and test (out of sample) data sets\
- 2 10 12                       ! Write two extra output files: basisinfo.dat and vtest.dat\
- 120. 15.                      ! Range parameter & reference energy used for weigting the data sets\
- 3 300. 150. 50.               ! Report weighted RMS errors for the energy ranges 300-150, 150-50, and &gt; 50.\
- 6                             ! Number of atoms\
- C H H H H  H                  ! Atom labels\
- 1 2 2 2 2  2                  ! Exchange all H atoms\
- F 6 6 1                       ! Generate a PIP66 basis and exclude unconnected terms\
- 1                             ! Define one molecular fragment channel\
+ train.dat  test.dat           ! Training (in-sample) and test (out-of-sample) data sets
+ 2 10 12                       ! Write two extra output files: basisinfo.dat and vtest.dat
+ 120. 15.                      ! Range parameter & reference energy used for weigting the data sets
+ 3 300. 150. 50.               ! Report weighted RMS errors for the energy ranges 300-150, 150-50, and > 50 kcal/mol
+ 6                             ! Number of atoms
+ C H H H H  H                  ! Atom labels
+ 1 2 2 2 2  2                  ! Exchange all H atoms
+ F 6 6 1                       ! Generate a PIP66 basis and exclude unconnected terms
+ 1                             ! Define one molecular fragment channel
  1 1 1 1 2  2                  ! Remove unconnected terms for CH3 + H2
 ```
 
 An example of the standard input for parametrizing the intermolecular energy of HO2 + N2:
 ```
- ai.all ai.test                ! Training (in sample) and test (out of sample) data sets\
- -1                            ! Output control flags\
- 650. -650.                    ! Range parameter & reference energy used for weigting the data sets\
- 4 12000. 4000. 0. -100.       ! Energy ranges for error analysis\
- 5                             ! Number of atoms\
- O O H  N N                    ! Atom labels\
- 1 1 2  3 3                    ! Atomic permutation group assignments\
- F 3 3 1                       ! Read basis?, xi\_factor xi\_order defining the PIP expansion, expansion type\
- 1                             ! Number of fragment channels\
+ ai.all ai.test                ! Training (in-sample) and test (out-of-sample) data sets
+ -1                            ! Print only standard output files
+ 650. -650.                    ! Range parameter & reference energy used for weigting the data sets
+ 4 12000. 4000. 0. -100.       ! Energy ranges for error analysis (cm-1, should match on training and test data)
+ 5                             ! Number of atoms
+ O O H  N N                    ! Atom labels
+ 1 1 2  3 3                    ! Atomic permutation group assignments
+ F 3 3 1                       ! Read basis flag, xi(factor), xi(total), IMode
+ 1                             ! Number of fragment channels
  1 1 1  2 2                    ! Fragment channel assignment
 ```
 
@@ -146,23 +146,23 @@ Repeat records 2 to 4+natom-1 nconfigs times.\
 
 An example of a training data file for CH4 + H:
 ```
- 252889\
-           6\
-           1   10.560402393341064        53.686826233325540\
- C    1.5173673060615555E-002   4.4702465630787759E-002  -1.4358965674743889E-002\
- H   0.91590037301702620       0.90465104728081480      -0.20951100564292088\
- H  -0.76584954941485162       0.47045512915600951       0.71197774484952547\
- H   0.33813250754609325       -1.0217171694056011       0.43081043111330708\
- H  -0.66885366253257239      -0.88565362397310610      -0.76230742051520683\
- H    0.0000000000000000        0.0000000000000000        10.560402393341064\
-           6\
-           2   10.570185661315918        59.077923490250427\
- C    4.9995719662588062E-002   1.9433570273590349E-002  -5.6145657920771551E-002\
- H   0.54699863563179474      -0.51274152448620047       0.86368685674454160\
- H   -1.3059409910751345      -0.40217994502678356       0.36928993237443070\
- H    8.5167241702765351E-002 -0.56611080900603028      -0.98537152036295583\
- H    7.8484625857204948E-002   1.2496400791956357       0.42091148271299739\
- H    0.0000000000000000        0.0000000000000000        10.570185661315918\
+ 252889
+           6
+           1   10.560402393341064        53.686826233325540
+ C    1.5173673060615555E-002   4.4702465630787759E-002  -1.4358965674743889E-002
+ H   0.91590037301702620       0.90465104728081480      -0.20951100564292088
+ H  -0.76584954941485162       0.47045512915600951       0.71197774484952547
+ H   0.33813250754609325       -1.0217171694056011       0.43081043111330708
+ H  -0.66885366253257239      -0.88565362397310610      -0.76230742051520683
+ H    0.0000000000000000        0.0000000000000000        10.560402393341064
+           6
+           2   10.570185661315918        59.077923490250427
+ C    4.9995719662588062E-002   1.9433570273590349E-002  -5.6145657920771551E-002
+ H   0.54699863563179474      -0.51274152448620047       0.86368685674454160
+ H   -1.3059409910751345      -0.40217994502678356       0.36928993237443070
+ H    8.5167241702765351E-002 -0.56611080900603028      -0.98537152036295583
+ H    7.8484625857204948E-002   1.2496400791956357       0.42091148271299739
+ H    0.0000000000000000        0.0000000000000000        10.570185661315918
 etc...
 ```
 
