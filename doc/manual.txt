@@ -140,8 +140,8 @@ functionality for creating these files. Both files follow the same format:
 Record 1:                   nconfig ! Number of data
 Record 2:                   natom   ! Number of atoms
 Record 3:                   iconfig   dummy   vai  ! Index, dummy(not used), ab initio energy
-Record 4 to 4+natom:        symb   x   y   z ! Atomic symbol, Cartesian coordinates
-Repeat records 2-4+natom nconfigs times.
+Record 4 to 4+natom-1:        symb   x   y   z ! Atomic symbol, Cartesian coordinates
+Repeat records 2 to 4+natom-1 nconfigs times.
 Notes: Units are never converted such that the generated expansions should provide energies and
        forces in the same units as the training data. One caveat: The Morse range parameter 
        is hard coded as unity in whatever units are used for the geometry in the training data. 

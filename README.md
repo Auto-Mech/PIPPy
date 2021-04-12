@@ -1,4 +1,4 @@
-# PIPPy
+## PIPPy
 ## A Python and Fortran code for automatically fitting permutationally invariant polynomials
 
 ## Authors
@@ -15,12 +15,12 @@ References:\
 ## I. DISTRIBUTION AND INSTALLATION
 
 PIPPy is distributed with four subdirectories:\
-    doc/	Contains this manual in txt format\
-    python/	Contains the Python wrapper\
-    runs/	Contains several example input and output files\
-    src/	Contains the Fortran code and a compilation script named compile.sh
+- doc/: Contains this manual in txt format\
+- python/: Contains the Python wrapper\
+- runs/: Contains several example input and output files\
+- src/: Contains the Fortran code and a compilation script named compile.sh
 
-To install PIPPy, first compile the Fortran executable by running ./compile.sh in the
+To install PIPPy, first compile the Fortran executable by running ./compile.sh in the 
 src/ directory. The compiled executable is named pip.x and appears in the src/ directory.
 
 The Fortran code can be run independently of the Python wrapper with a properly prepared
@@ -47,62 +47,65 @@ The standard input file contains a series of records, each a single line of inpu
 Key: dp = double precision, int = integer, char * _n_ = character * _n_, log = logical
 
 
-**Record 1**: DataTrain  DataTest [Example: train.dat test.dat]\
-        DataTrain (char*10): Filename of the in sample (training) data file\
-        DataTest (char*10): Filename of the out of sample (test) data file\
-        **Note:** The required format for the data files is given in Section II.B.\
-               If DataTest is set to "none", no test set evaluation is made.
+- **Record 1**: DataTrain  DataTest [Example: train.dat test.dat]\
+    - DataTrain (char * 10): Filename of the in sample (training) data file\
+    - DataTest (char * 10): Filename of the out of sample (test) data file\
 
-**Record 2**: NumWrite  Units [Example: 2 10 12]\
-	NumWrite (int): Number of extra output files to write\
-		= -1, no extra output files are written.\
-		= 0, all output files are written.\
-		&gt; 0, read a list of NumWrite extra output files.\
-	Units[NumWrite] (int): List of additional output files to write.\
-		 1 : Write additional debug information to the standard output\
-		10 : (basisinfo.dat) Write detailed basis set information\
-		11 : (vtrain.dat) Compare ab intio training energies and fitted energies\
-		12 : (vtest.dat) Compare ab intio test energies and fitted energies\
-		20 : (xmat.dat) Write the X matrix containing the symmetrized basis functions (columns) evaluated for the training data (rows)
+    **Note:** The required format for the data files is given in Section II.B.\
+           If DataTest is set to "none", no test set evaluation is made.
 
-**Record 3**: RangeParameter  RefEnergy [Example: 100. 15.]\
-        RangeParameter (dp): Range parameter used in the training and test set weight function\
-        RefEnergy (dp): Reference energy used in the training and test set weight function\
-        **Note:** Reasonable choices for RefEnergy include the binding energy for van der Waals systems and the saddle point energy for reactive systems, while RangeParameter describes the energy range required for the intended application.
+- **Record 2**: NumWrite  Units [Example: 2 10 12]\
+    - NumWrite (int): Number of extra output files to write\
+        = -1, no extra output files are written.\
+	= 0, all output files are written.\
+	&gt; 0, read a list of NumWrite extra output files.\
+    - Units[NumWrite] (int): List of additional output files to write.\
+	 1 : Write additional debug information to the standard output\
+	10 : (basisinfo.dat) Write detailed basis set information\
+	11 : (vtrain.dat) Compare ab intio training energies and fitted energies\
+	12 : (vtest.dat) Compare ab intio test energies and fitted energies\
+	20 : (xmat.dat) Write the X matrix containing the symmetrized basis functions (columns) evaluated for the training data (rows)
 
-**Record 4**: NumRanges  EnergyRanges [Example: 3 300. 150. 50.]\
-        NumRange (int): Number of energy limits to consider when reporting averaged errors.
-        EnergyRange[NumRange] (dp): Values of energy range limits.
+- **Record 3**: RangeParameter  RefEnergy [Example: 100. 15.]\
+    - RangeParameter (dp): Range parameter used in the training and test set weight function\
+    - RefEnergy (dp): Reference energy used in the training and test set weight function\
 
-**Record 5**: NumAtoms [Example: 6]\
-        NumAtoms (int): Number of atoms
+    **Note:** Reasonable choices for RefEnergy include the binding energy for van der Waals systems and the saddle point energy for reactive systems, while RangeParameter describes the energy range required for the intended application.
 
-**Record 6**: Symbols [Example: C H H H H  H]\
-        Symbols[NumAtoms] (char*2): Atomic symbol for each atom
+- **Record 4**: NumRanges  EnergyRanges [Example: 3 300. 150. 50.]\
+    - NumRange (int): Number of energy limits to consider when reporting averaged errors.
+    - EnergyRange[NumRange] (dp): Values of energy range limits.
 
-**Record 7**: AtomGroups [Example: 1 2 2 2 2  2]\
-        AtomGroups[NumAtoms] (int): Atomic permutation group for each atom
+- **Record 5**: NumAtoms [Example: 6]\
+    - NumAtoms (int): Number of atoms
 
-**Record 8**: ReadBasis  FactorOrder  TotalOrder  IMode [Example: F 6 6 1]\
-        ReadBasis (logical): Set to TRUE to read the basis from basis.dat. Otherwise the basis is generated and written to basis.dat.\
-        FactorOrder (int): Maximum allowed order for a single factor\
-        TotalOrder (int): Maximum total order allowed for a term\
-        IMode (int): Controls various choices for generating the PIP expansion\
-               -1 : Use intermolecular distances only when generating terms\
-                0 : Use all PIP terms\
-                1 : Remove unconnected terms\
-                2 : Remove unconnected and intramolecular-only terms\
-                3 : Remove intramolecular-only terms\
+- **Record 6**: Symbols [Example: C H H H H  H]\
+    - Symbols[NumAtoms] (char*2): Atomic symbol for each atom
+
+- **Record 7**: AtomGroups [Example: 1 2 2 2 2  2]\
+    - AtomGroups[NumAtoms] (int): Atomic permutation group for each atom
+
+- **Record 8**: ReadBasis  FactorOrder  TotalOrder  IMode [Example: F 6 6 1]\
+    - ReadBasis (logical): Set to TRUE to read the basis from basis.dat. Otherwise the basis is generated and written to basis.dat.\
+    - FactorOrder (int): Maximum allowed order for a single factor\
+    - TotalOrder (int): Maximum total order allowed for a term\
+    - IMode (int): Controls various choices for generating the PIP expansion\
+        -1 : Use intermolecular distances only when generating terms\
+        0 : Use all PIP terms\
+        1 : Remove unconnected terms\
+        2 : Remove unconnected and intramolecular-only terms\
+        3 : Remove intramolecular-only terms\
+
         **Note:** When IMode != 0, one or more fragment groups must be assigned in Records 9 and 10.
 
-**Record 9**: NumChannels [Example: 1]\
-        NumChannels (int): Number of fragment channels
+- **Record 9**: NumChannels [Example: 1]\
+    - NumChannels (int): Number of fragment channels
 
-**Record 10**: FragmentGroups [Example: 1 1 1 1 2  2]\
-        FragmentGroups[NumAtoms] (int): Fragment group assignments
+- **Record 10**: FragmentGroups [Example: 1 1 1 1 2  2]\
+    - FragmentGroups[NumAtoms] (int): Fragment group assignments
 
 An example of the standard input for CH4 + H = CH3 + H2:
-
+```
  train.dat  test.dat           ! Training (in sample) and test (out of sample) data sets\
  2 10 12                       ! Write two extra output files: basisinfo.dat and vtest.dat\
  120. 15.                      ! Range parameter & reference energy used for weigting the data sets\
@@ -113,9 +116,10 @@ An example of the standard input for CH4 + H = CH3 + H2:
  F 6 6 1                       ! Generate a PIP66 basis and exclude unconnected terms\
  1                             ! Define one molecular fragment channel\
  1 1 1 1 2  2                  ! Remove unconnected terms for CH3 + H2
+```
 
 An example of the standard input for parametrizing the intermolecular energy of HO2 + N2:
-
+```
  ai.all ai.test                ! Training (in sample) and test (out of sample) data sets\
  -1                            ! Output control flags\
  650. -650.                    ! Range parameter & reference energy used for weigting the data sets\
@@ -126,6 +130,7 @@ An example of the standard input for parametrizing the intermolecular energy of 
  F 3 3 1                       ! Read basis?, xi\_factor xi\_order defining the PIP expansion, expansion type\
  1                             ! Number of fragment channels\
  1 1 1  2 2                    ! Fragment channel assignment
+```
 
 ### II.B. TRAINING AND TEST SETS
 
@@ -134,12 +139,13 @@ These data files contain the training and test sets. PIPPy does not currently in
 Record 1:                   nconfig ! Number of data\
 Record 2:                   natom   ! Number of atoms\
 Record 3:                   iconfig   dummy   vai  ! Index, dummy(not used), ab initio energy\
-Record 4 to 4+natom:        symb   x   y   z ! Atomic symbol, Cartesian coordinates\
-Repeat records 2-4+natom nconfigs times.\
+Record 4 to 4+natom-1:      symb   x   y   z ! Atomic symbol, Cartesian coordinates\
+Repeat records 2 to 4+natom-1 nconfigs times.\
+
 **Note:** Units are never converted such that the generated expansions should provide energies and forces in the same units as the training data. One caveat: The Morse range parameter is hard coded as unity in whatever units are used for the geometry in the training data. This choice is more appropriate when using Angstroms than when using other units for distance.
 
 An example of a training data file for CH4 + H:
-
+```
  252889\
            6\
            1   10.560402393341064        53.686826233325540\
@@ -158,11 +164,13 @@ An example of a training data file for CH4 + H:
  H    7.8484625857204948E-002   1.2496400791956357       0.42091148271299739\
  H    0.0000000000000000        0.0000000000000000        10.570185661315918\
 etc...
+```
+
 
 ---------------------------------------------------------------------------------------
 ## III. OUTPUT FILES
 
-By default three files are created upon running PIPPy. Additional output files can be written using the options in Record 2 of the standard input.
+By default, three files are created upon running PIPPy. Additional output files can be written using the options in Record 2 of the standard input.
 
 ### III.A. Standard output
 
@@ -170,7 +178,7 @@ The standard output contains a variety of general information, including a progr
 counter for the symmetrization step. Additional debug output can be turned on by
 writing to unit 1 in Recrond 2 of the standard input.
 
-### 2. basis.dat
+### III.B. basis.dat
 
 The first line lists the number of atoms, atom pairs, coefficients, and terms in the expansion. Following this is a list of each term, the group it belongs to, and the exponents for each term.
 
