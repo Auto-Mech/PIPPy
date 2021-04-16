@@ -47,18 +47,18 @@ The standard input file contains a series of records, each a single line of inpu
 Key: dp = double precision, int = integer, char * _n_ = character * _n_, log = logical
 
 
-- **Record 1**: DataTrain  DataTest [Example: train.dat test.dat]\
-    - DataTrain (char * 10): Filename of the in sample (training) data file\
-    - DataTest (char * 10): Filename of the out of sample (test) data file\
+- **Record 1**: DataTrain  DataTest [Example: train.dat test.dat]
+    - DataTrain (char * 10): Filename of the in sample (training) data file
+    - DataTest (char * 10): Filename of the out of sample (test) data file
 
     **Note:** The required format for the data files is given in Section II.B.\
            If DataTest is set to "none", no test set evaluation is made.
 
-- **Record 2**: NumWrite  Units [Example: 2 10 12]\
+- **Record 2**: NumWrite  Units [Example: 2 10 12]
     - NumWrite (int): Number of extra output files to write\
         = -1, no extra output files are written.\
 	= 0, all output files are written.\
-	&gt; 0, read a list of NumWrite extra output files.\
+	&gt; 0, read a list of NumWrite extra output files.
     - Units[NumWrite] (int): List of additional output files to write.\
 	 1 : Write additional debug information to the standard output\
 	10 : (basisinfo.dat) Write detailed basis set information\
@@ -66,42 +66,42 @@ Key: dp = double precision, int = integer, char * _n_ = character * _n_, log = l
 	12 : (vtest.dat) Compare ab intio test energies and fitted energies\
 	20 : (xmat.dat) Write the X matrix containing the symmetrized basis functions (columns) evaluated for the training data (rows)
 
-- **Record 3**: RangeParameter  RefEnergy [Example: 100. 15.]\
-    - RangeParameter (dp): Range parameter used in the training and test set weight function\
-    - RefEnergy (dp): Reference energy used in the training and test set weight function\
+- **Record 3**: RangeParameter  RefEnergy [Example: 100. 15.]
+    - RangeParameter (dp): Range parameter used in the training and test set weight function
+    - RefEnergy (dp): Reference energy used in the training and test set weight function
 
     **Note:** Reasonable choices for RefEnergy include the binding energy for van der Waals systems and the saddle point energy for reactive systems, while RangeParameter describes the energy range required for the intended application.
 
-- **Record 4**: NumRanges  EnergyRanges [Example: 3 300. 150. 50.]\
+- **Record 4**: NumRanges  EnergyRanges [Example: 3 300. 150. 50.]
     - NumRange (int): Number of energy limits to consider when reporting averaged errors.
     - EnergyRange[NumRange] (dp): Values of energy range limits.
 
-- **Record 5**: NumAtoms [Example: 6]\
+- **Record 5**: NumAtoms [Example: 6]
     - NumAtoms (int): Number of atoms
 
-- **Record 6**: Symbols [Example: C H H H H  H]\
+- **Record 6**: Symbols [Example: C H H H H  H]
     - Symbols[NumAtoms] (char*2): Atomic symbol for each atom
 
-- **Record 7**: AtomGroups [Example: 1 2 2 2 2  2]\
+- **Record 7**: AtomGroups [Example: 1 2 2 2 2  2]
     - AtomGroups[NumAtoms] (int): Atomic permutation group for each atom
 
-- **Record 8**: ReadBasis  FactorOrder  TotalOrder  IMode [Example: F 6 6 1]\
-    - ReadBasis (logical): Set to TRUE to read the basis from basis.dat. Otherwise the basis is generated and written to basis.dat.\
-    - FactorOrder (int): Maximum allowed order for a single factor\
-    - TotalOrder (int): Maximum total order allowed for a term\
+- **Record 8**: ReadBasis  FactorOrder  TotalOrder  IMode [Example: F 6 6 1]
+    - ReadBasis (logical): Set to TRUE to read the basis from basis.dat. Otherwise the basis is generated and written to basis.dat.
+    - FactorOrder (int): Maximum allowed order for a single factor
+    - TotalOrder (int): Maximum total order allowed for a term
     - IMode (int): Controls various choices for generating the PIP expansion\
         -1 : Use intermolecular distances only when generating terms\
         0 : Use all PIP terms\
         1 : Remove unconnected terms\
         2 : Remove unconnected and intramolecular-only terms\
-        3 : Remove intramolecular-only terms\
+        3 : Remove intramolecular-only terms
 
         **Note:** When IMode != 0, one or more fragment groups must be assigned in Records 9 and 10.
 
-- **Record 9**: NumChannels [Example: 1]\
+- **Record 9**: NumChannels [Example: 1]
     - NumChannels (int): Number of fragment channels
 
-- **Record 10**: FragmentGroups [Example: 1 1 1 1 2  2]\
+- **Record 10**: FragmentGroups [Example: 1 1 1 1 2  2]
     - FragmentGroups[NumAtoms] (int): Fragment group assignments
 
 An example of the standard input for CH4 + H &lt;=&gt; CH3 + H2:
@@ -140,7 +140,7 @@ Record 1:                   nconfig ! Number of data\
 Record 2:                   natom   ! Number of atoms\
 Record 3:                   iconfig   dummy   vai  ! Index, dummy(not used), ab initio energy\
 Record 4 to 4+natom-1:      symb   x   y   z ! Atomic symbol, Cartesian coordinates\
-Repeat records 2 to 4+natom-1 nconfigs times.\
+Repeat records 2 to 4+natom-1 nconfigs times.
 
 **Note:** Units are never converted such that the generated expansions should provide energies and forces in the same units as the training data. One caveat: The Morse range parameter is hard coded as unity in whatever units are used for the geometry in the training data. This choice is more appropriate when using Angstroms than when using other units for distance.
 
