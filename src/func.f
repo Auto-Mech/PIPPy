@@ -160,10 +160,10 @@ c       linter = use intermolecular distances only?
 
       termest=1.d0 ! number of terms for ipow=ipowt
       do i=max(npairs,ipowt)+1,npairs+ipowt
-      termest=termest*dble(i)
+        termest=termest*dble(i)
       enddo
       do i=2,min(npairs,ipowt)
-      termest=termest/dble(i)
+        termest=termest/dble(i)
       enddo
 
       if (termest.gt.dble(maxterm)) then
@@ -659,9 +659,9 @@ c     remove unconnected and intramolecular only terms if required
         endif
       endif
       do ii=1,nterm
-        write(55,'(2i8," : ",1000i8)')
+        write(55,'(2i8," : ",1000i4)')
      &        ii,ibasis(ii),(ind(ii,j),j=1,npairs)
-        if (lwrite(10)) write(10,'(2i8,a,1000i10)')
+        if (lwrite(10)) write(10,'(2i8,a,1000i4)')
      &     ii,ibasis(ii)," :",(ind(ii,j),j=1,npairs)
       enddo
       close(55)
