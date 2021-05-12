@@ -47,7 +47,6 @@ venv.bak/
 
 # Distribution
 .Python
-bin/
 build/
 install/
 lib/
