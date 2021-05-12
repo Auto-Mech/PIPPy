@@ -25,9 +25,14 @@ REQUIRED_KEYS = {
     'fortran_execution': ('UseCL',)
 }
 
+# Defaults for keys that may be missing
+DEFAULT_DCT = {
+    'Units': ''
+}
+
 
 # Parse out the input string
-def parse(inp_str):
+def input_file(inp_str):
     """ Parse the input string
     """
 
@@ -36,17 +41,21 @@ def parse(inp_str):
     fform_block = ioformat.ptt.symb_block(inp_str, '$', 'functional_form')
     exec_block = ioformat.ptt.symb_block(inp_str, '$', 'fortran_execution')
 
-    train_dct = ioformat.ptt.keyword_dct_from_block(train_block)
-    fform_dct = ioformat.ptt.keyword_dct_from_block(fform_block)
-    exec_dct = ioformat.ptt.keyword_dct_from_block(exec_block)
+    train_dct = ioformat.ptt.keyword_dct_from_block(
+        train_block[1], formatvals=False)
+    fform_dct = ioformat.ptt.keyword_dct_from_block(
+        fform_block[1], formatvals=False)
+    exec_dct = ioformat.ptt.keyword_dct_from_block(
+        exec_block[1], formatvals=False)
+
+    # Set defaults (maybe use fancy version later if more defaults can be set)
+    if 'Units' not in train_dct:
+        train_dct['Units'] = DEFAULT_DCT['Units']
 
     # Check that the dictionaries are built correctly
     _check_dcts(train_dct, fform_dct, exec_dct)
 
-    # Get the comm line
-    comm_line = ''
-
-    return train_dct, fform_dct, exec_dct, comm_line
+    return train_dct, fform_dct, exec_dct
 
 
 def _check_dcts(train_dct, fform_dct, exec_dct):
@@ -81,3 +90,10 @@ def _check_dcts(train_dct, fform_dct, exec_dct):
                 for key in undefined_required_keys:
                     print(key)
                 sys.exit()
+
+    # Need a secondary check on the exec dct
+    if exec_dct['UseCL'] == 'T':
+        if 'CommandLine' not in exec_dct:
+            print('CommandLine must be given in fortran_execution ',
+                  'if UseCL set to T')
+            sys.exit()

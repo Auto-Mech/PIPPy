@@ -10,11 +10,11 @@ SRC_PATH = os.path.dirname(os.path.realpath(__file__))
 TEMPLATE_PATH = os.path.join(SRC_PATH, 'templates')
 
 
-def pippy_input(data_train, data_test, num_write, units,
-                range_parameter, ref_energy, num_ranges, energy_ranges,
-                num_atoms, symbols, atom_groups, read_basis,
-                factor_order, total_order,
-                imode, num_channels, fragment_groups):
+def input_file(data_train, data_test, num_write, units,
+               range_parameter, ref_energy, num_ranges, energy_ranges,
+               num_atoms, symbols, atom_groups, read_basis,
+               factor_order, total_order,
+               imode, num_channels, fragment_groups):
     """ writes the PIPPy input file for each instance
     """
 
