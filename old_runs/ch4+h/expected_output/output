@@ -1,0 +1,64 @@
+****************************************************************************************************
+
+ PIP: A Fortran code for fitting permutationally invariant polynomials
+      Daniel R. Moberg and Ahren W. Jasper, Argonne, 2021
+
+****************************************************************************************************
+
+ Generating a PIP    2    2 basis and writing it to basis.dat
+ Mode = 1: Using all bond distances and removing unconnected terms
+
+*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  
+
+ Atoms
+   Symbol   C    H    H    H    H    H 
+   Index    1    2    3    4    5    6
+   Group    1    2    2    2    2    2
+   Number of permutations =        120
+
+   Fragment Channels
+     1 :    1    1    1    1    2    2
+
+ Symmetrizing the expansion
+
+ CPU time spent symmetrizing:         0.0014691353 s
+
+ Analyzing fragment channel            1
+ Found            6  (            2 ) unconnected terms (groups)
+
+ Removing these groups results in the following reductions:
+ Terms:         136  -         45 =         91 (         66.912 % )
+ Groups:         10  -          2 =          8 (         80.000 % )
+
+ Finished preparing the basis and writing it to basis.dat
+ This basis has           91  (           8 ) terms (groups)
+
+*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  
+
+ Fitting to the training data in train.dat       
+ Using          999  of the         1000  provided data
+ Out of sample testing using data in test.dat        
+ Weight function parameters: epsilon =    100.00000000000000       and vref =    15.000000000000000     
+
+ Weighted errors between (below) user-provided energies
+           E       number    %weight       error   (     number        error   )
+         300.00         5       0.1       51.06235 (        999       12.09801 ) 
+         150.00       544      44.4       14.07611 (        994       11.98215 ) 
+          50.00       450      55.5        9.99733 (        450        9.99733 ) 
+
+ Comparision of low energy points found while fitting
+                         data           fit          difference 
+   data minimum         1.00946       24.58723      -23.57778
+ fitted minumum         1.00946       24.58723      -23.57778
+
+ Out of sample test set error:    10.308777952690523     
+
+ Optimized coefficients written to coef.dat
+
+****************************************************************************************************
+
+ summary           8   11.982145010093896        10.308777952690523     
+
+
+Total time:         0.0899281502 s
+
