@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python ../../python/pippy.py input.py
+python ../../bin/pippy.py # -i input.dat

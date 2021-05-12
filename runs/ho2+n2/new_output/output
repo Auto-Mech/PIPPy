@@ -35,7 +35,7 @@
 
  Symmetrizing the expansion
 
- CPU time spent symmetrizing:         0.0012018681 s
+ CPU time spent symmetrizing:         0.0008740425 s
 
  Analyzing fragment channel            1
  Found           12  (            8 ) unconnected terms (groups)
@@ -75,5 +75,5 @@
  summary          94   51.906691493571977        93.538763013507477     
 
 
-Total time:         0.1817400455 s
+Total time:         0.2687101364 s
 
