@@ -14,10 +14,10 @@ References:\
 ---------------------------------------------------------------------------------------
 ## I. DISTRIBUTION AND INSTALLATION
 
-PIPPy is distributed with four subdirectories:\
-- doc/: Contains this manual in txt format\
-- python/: Contains the Python wrapper\
-- runs/: Contains several example input and output files\
+PIPPy is distributed with four subdirectories:
+- doc/: Contains this manual in txt format
+- python/: Contains the Python wrapper
+- runs/: Contains several example input and output files
 - src/: Contains the Fortran code and a compilation script named compile.sh
 
 To install PIPPy, first compile the Fortran executable by running ./compile.sh in the 

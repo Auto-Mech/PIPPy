@@ -162,7 +162,8 @@ c      IF (.false.) THEN ! To not fit function
           vvx=vvx+coef(j)*basis(j)
           if (i.eq.1) write(56,'(i5,e20.10)')j,coef(j)
         enddo
-        if (lwrite(20)) write(20,'(i10,10000e18.6)')i,1./sig(i),vv(i),
+!        if (lwrite(20)) write(20,'(i10,10000e18.6)')i,1./sig(i),vv(i),
+        if (lwrite(20)) write(20,'(i10,*(e18.6))')i,1./sig(i),vv(i),
      &                                              (basis(j),j=1,ncoef)
         if (lwrite(11)) write(11,'(i10,3e18.6)')i,1./sig(i),vv(i),vvx
         do k=1,ncut
