@@ -177,9 +177,12 @@ c       linter = use intermolecular distances only?
       write(6,'(34("*  "))')
       write(6,*)
       write(6,*)"Atoms"
-      write(6,'(1x,a8,100a5)')"Symbol",(symb(i),i=1,natom)
-      write(6,'(a8,100i5)')"Index",(i,i=1,natom)
-      write(6,'(a8,100i5)')"Group",(iagroup(i),i=1,natom)
+!      write(6,'(1x,a8,100a5)')"Symbol",(symb(i),i=1,natom)
+!      write(6,'(a8,100i5)')"Index",(i,i=1,natom)
+!      write(6,'(a8,100i5)')"Group",(iagroup(i),i=1,natom)
+      write(6,'(1x,a8,*(a5))')"Symbol",(symb(i),i=1,natom)
+      write(6,'(a8,*(i5))')"Index",(i,i=1,natom)
+      write(6,'(a8,*(i5))')"Group",(iagroup(i),i=1,natom)
       ENDIF
 
       if (lnointra.or.lnounc.or.linter) then
@@ -244,7 +247,8 @@ c generate atom permutation lists
       if ((lnounc.or.lnointra.or.linter).and.my_id.eq.0) then
         write(6,'(3x,a)')"Fragment Channels"
         do i=1,nchan
-          write(6,'(1x,i5,a,100i5)')i," :",(changroup(i,j),j=1,natom)
+!          write(6,'(1x,i5,a,100i5)')i," :",(changroup(i,j),j=1,natom)
+          write(6,'(1x,i5,a,*(i5))')i," :",(changroup(i,j),j=1,natom)
         enddo
       endif
 
@@ -290,7 +294,8 @@ c generate atom permutation lists
       write(6,*)
       write(6,*)'Atom permutations = ',npermute
       do i=1,min(npermute,50) ! print up to 50 permutations
-        write(6,'(i6,a,1000i5)')i," :",(iatom(i,j),j=1,natom)
+!        write(6,'(i6,a,1000i5)')i," :",(iatom(i,j),j=1,natom)
+        write(6,'(i6,a,*(i5))')i," :",(iatom(i,j),j=1,natom)
       enddo
       if (npermute.gt.50) write(6,*)" ** Truncating list **"
       endif
@@ -299,7 +304,8 @@ c generate atom permutation lists
       write(10,*)
       write(10,*)'Atom permutations = ',npermute
       do i=1,npermute
-        write(10,'(i7,a,1000i5)')i," :",(iatom(i,j),j=1,natom)
+!        write(10,'(i7,a,1000i5)')i," :",(iatom(i,j),j=1,natom)
+        write(10,'(i7,a,*(i5))')i," :",(iatom(i,j),j=1,natom)
       enddo
       endif
       ENDIF
@@ -322,14 +328,18 @@ c generate atom permutation lists
         write(6,*)
         write(6,*)"Pair permutations"
         if (.not.linter) then
-          write(6,'(14x,1000(a3,"- ",a3,2x))')
+!          write(6,'(14x,1000(a3,"- ",a3,2x))')
+          write(6,'(14x,*(a3,"- ",a3,2x))')
      &       ((symb(i),symb(j),j=1+i,natom),i=1,natom) 
-          write(6,'(13x,1000(i3," -",i3,2x))')((i,j,j=1+i,natom),
+!          write(6,'(13x,1000(i3," -",i3,2x))')((i,j,j=1+i,natom),
+          write(6,'(13x,*(i3," -",i3,2x))')((i,j,j=1+i,natom),
      &       i=1,natom)
         else
-          write(6,'(14x,1000(a3,"- ",a3,2x))')
+!          write(6,'(14x,1000(a3,"- ",a3,2x))')
+          write(6,'(14x,*(a3,"- ",a3,2x))')
      &       ((symb(i),symb(j),j=1+natom1,natom),i=1,natom1)
-          write(6,'(13x,1000(i3," -",i3,2x))')((i,j,j=1+natom1,natom),
+!          write(6,'(13x,1000(i3," -",i3,2x))')((i,j,j=1+natom1,natom),
+          write(6,'(13x,*(i3," -",i3,2x))')((i,j,j=1+natom1,natom),
      &       i=1,natom1)
         endif
       endif ! DEBUG OUTPUT
@@ -337,14 +347,18 @@ c generate atom permutation lists
         write(10,*)
         write(10,*)"Pair permutations"
         if (.not.linter) then
-          write(10,'(14x,1000(a3,"- ",a3,2x))')
+!          write(10,'(14x,1000(a3,"- ",a3,2x))')
+          write(10,'(14x,*(a3,"- ",a3,2x))')
      &       ((symb(i),symb(j),j=1+i,natom),i=1,natom)
-          write(10,'(13x,1000(i3," -",i3,2x))')((i,j,j=1+i,natom),
+!          write(10,'(13x,1000(i3," -",i3,2x))')((i,j,j=1+i,natom),
+          write(10,'(13x,*(i3," -",i3,2x))')((i,j,j=1+i,natom),
      &       i=1,natom)
         else
-          write(10,'(14x,1000(a3,"- ",a3,2x))')
+!          write(10,'(14x,1000(a3,"- ",a3,2x))')
+          write(10,'(14x,*(a3,"- ",a3,2x))')
      &       ((symb(i),symb(j),j=1+natom1,natom),i=1,natom1)
-          write(10,'(13x,1000(i3," -",i3,2x))')((i,j,j=1+natom1,natom),
+!          write(10,'(13x,1000(i3," -",i3,2x))')((i,j,j=1+natom1,natom),
+          write(10,'(13x,*(i3," -",i3,2x))')((i,j,j=1+natom1,natom),
      &       i=1,natom1)
         endif
       endif
@@ -363,9 +377,11 @@ c generate atom permutation lists
           enddo
         enddo
         IF (my_id.eq.0) THEN
-        if (ii.le.50.and.ldebug) write(6,'(i6,a,1000i10)')
+!        if (ii.le.50.and.ldebug) write(6,'(i6,a,1000i10)')
+        if (ii.le.50.and.ldebug) write(6,'(i6,a,*(i10))')
      &     ii," :",(ix(ii,iix),iix=1,npairs)
-        if (lwrite(10)) write(10,'(i7,a,1000i10)')
+!        if (lwrite(10)) write(10,'(i7,a,1000i10)')
+        if (lwrite(10)) write(10,'(i7,a,*(i10))')
      &     ii," :",(ix(ii,iix),iix=1,npairs)
         ENDIF
       enddo
@@ -647,21 +663,27 @@ c     remove unconnected and intramolecular only terms if required
         write(10,*)
         write(10,*)"Symmetrized Basis"
         if (.not.linter) then
-          write(10,'(23x,1000(a3,"- ",a3,2x))')
+!          write(10,'(23x,1000(a3,"- ",a3,2x))')
+          write(10,'(23x,*(a3,"- ",a3,2x))')
      &       ((symb(i),symb(j),j=1+i,natom),i=1,natom)
-          write(10,'(22x,1000(i3," -",i3,2x))')((i,j,j=1+i,natom),
+!          write(10,'(22x,1000(i3," -",i3,2x))')((i,j,j=1+i,natom),
+          write(10,'(22x,*(i3," -",i3,2x))')((i,j,j=1+i,natom),
      &       i=1,natom)
         else
-          write(10,'(23x,1000(a3,"- ",a3,2x))')
+!          write(10,'(23x,1000(a3,"- ",a3,2x))')
+          write(10,'(23x,*(a3,"- ",a3,2x))')
      &       ((symb(i),symb(j),j=1+natom1,natom),i=1,natom1)
-          write(10,'(22x,1000(i3," -",i3,2x))')((i,j,j=1+natom1,natom),
+!          write(10,'(22x,1000(i3," -",i3,2x))')((i,j,j=1+natom1,natom),
+          write(10,'(22x,*(i3," -",i3,2x))')((i,j,j=1+natom1,natom),
      &       i=1,natom1)
         endif
       endif
       do ii=1,nterm
-        write(55,'(2i8," : ",1000i4)')
+!        write(55,'(2i8," : ",1000i4)')
+        write(55,'(2i8," : ",*(i4))')
      &        ii,ibasis(ii),(ind(ii,j),j=1,npairs)
-        if (lwrite(10)) write(10,'(2i8,a,1000i4)')
+!        if (lwrite(10)) write(10,'(2i8,a,1000i4)')
+        if (lwrite(10)) write(10,'(2i8,a,*(i4))')
      &     ii,ibasis(ii)," :",(ind(ii,j),j=1,npairs)
       enddo
       close(55)
