@@ -9,7 +9,7 @@ Email: ajasper@anl.gov
 
 References:\
 (1) D. R. Moberg and A. W. Jasper, PIPPy, Argonne National Laboratory, 2021.\
-(2) D. R. Moberg and A. W. Jasper, Permutationally invariant polynomial expansions with unrestricted complexity, J. Chem. Thoery Comput., submitted (2021)
+(2) D. R. Moberg and A. W. Jasper, Permutationally invariant polynomial expansions with unrestricted complexity, J. Chem. Theory Comput., submitted (2021)
 
 ---------------------------------------------------------------------------------------
 ## I. DISTRIBUTION AND INSTALLATION
