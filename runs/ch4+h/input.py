@@ -5,8 +5,8 @@ NumWrite              2
 Units                 10 12
 RangeParameter        100.
 RefEnergy             15.
-NumRanges             3
-EnergyRanges          300. 150. 50.
+NumRanges             5
+EnergyRanges          300. 150. 50. 20. 0.
 $end
 
 $functional_form
