@@ -21,7 +21,7 @@
 
  Symmetrizing the expansion
 
- CPU time spent symmetrizing:         0.0014691353 s
+ CPU time spent symmetrizing:         0.0013730526 s
 
  Analyzing fragment channel            1
  Found            6  (            2 ) unconnected terms (groups)
@@ -44,7 +44,9 @@
            E       number    %weight       error   (     number        error   )
          300.00         5       0.1       51.06235 (        999       12.09801 ) 
          150.00       544      44.4       14.07611 (        994       11.98215 ) 
-          50.00       450      55.5        9.99733 (        450        9.99733 ) 
+          50.00       427      51.6        9.22631 (        450        9.99733 ) 
+          20.00        23       3.9       17.15732 (         23       17.15732 ) 
+           0.00         0       0.0        0.00000 (          0        0.00000 ) 
 
  Comparision of low energy points found while fitting
                          data           fit          difference 
@@ -57,8 +59,5 @@
 
 ****************************************************************************************************
 
- summary           8   11.982145010093896        10.308777952690523     
-
-
-Total time:         0.0899281502 s
+Total time:         0.0849521160 s
 

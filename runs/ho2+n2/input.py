@@ -4,8 +4,8 @@ DataTest              test.dat
 NumWrite              -1
 RangeParameter        650.
 RefEnergy             -650.
-NumRanges             4
-EnergyRanges          12000. 4000. 0. -100.
+NumRanges             5
+EnergyRanges          12000. 4000. 0. -100. -600.
 $end
 
 $functional_form

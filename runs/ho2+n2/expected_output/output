@@ -35,7 +35,7 @@
 
  Symmetrizing the expansion
 
- CPU time spent symmetrizing:         0.0012018681 s
+ CPU time spent symmetrizing:         0.0011348724 s
 
  Analyzing fragment channel            1
  Found           12  (            8 ) unconnected terms (groups)
@@ -60,20 +60,18 @@
         4000.00       249      22.8      101.09246 (        766       51.90669 ) 
            0.00       446      63.3       15.87048 (        517       21.41335 ) 
         -100.00        71      13.6       37.73432 (         71       37.73432 ) 
+        -600.00         0       0.0        0.00000 (          0        0.00000 ) 
 
  Comparision of low energy points found while fitting
                          data           fit          difference 
    data minimum      -556.69960     -555.68795       -1.01165
  fitted minumum      -532.56345     -572.62155       40.05811
 
- Out of sample test set error:    93.538763013507477     
+ Out of sample test set error:    93.718089159201170     
 
  Optimized coefficients written to coef.dat
 
 ****************************************************************************************************
 
- summary          94   51.906691493571977        93.538763013507477     
-
-
-Total time:         0.1817400455 s
+Total time:         0.1794259548 s
 
