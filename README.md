@@ -9,7 +9,7 @@ Email: ajasper@anl.gov
 
 References:\
 (1) D. R. Moberg and A. W. Jasper, PIPPy, Argonne National Laboratory, 2021.\
-(2) D. R. Moberg and A. W. Jasper, Permutationally invariant polynomial expansions with unrestricted complexity, J. Chem. Theory Comput., submitted (2021)
+(2) D. R. Moberg and A. W. Jasper, Permutationally Invariant Polynomial Expansions with Unrestricted Complexity, _J. Chem. Theory Comput._, **2021**, _17_, 5440-5455. [DOI: 10.1021/acs.jctc.1c00352](https://pubs.acs.org/doi/10.1021/acs.jctc.1c00352)
 
 ---------------------------------------------------------------------------------------
 ## I. DISTRIBUTION AND INSTALLATION
@@ -54,10 +54,10 @@ Key: dp = double precision, int = integer, char * _n_ = character * _n_, log = l
     **Note:** The required format for the data files is given in Section II.B.\
            If DataTest is set to "none", no test set evaluation is made.
 
-- **Record 2**: NumWrite  Units [Example: 2 10 12]
-    - NumWrite (int): Number of extra output files to write\
-        = -1, no extra output files are written.\
-	= 0, all output files are written.\
+- **Record 2**: NumWrite  Units [Example: 2  10 12]
+    - NumWrite (int): Number of output files to write\
+        = -1, all extra output files are written.\
+	= 0, no output files are written.\
 	&gt; 0, read a list of NumWrite extra output files.
     - Units[NumWrite] (int): List of additional output files to write.\
 	 1 : Write additional debug information to the standard output\
@@ -109,7 +109,7 @@ An example of the standard input for CH4 + H &lt;=&gt; CH3 + H2:
  train.dat  test.dat           ! Training (in-sample) and test (out-of-sample) data sets
  2 10 12                       ! Write two extra output files: basisinfo.dat and vtest.dat
  120. 15.                      ! Range parameter & reference energy used for weigting the data sets
- 3 300. 150. 50.               ! Report weighted RMS errors for the energy ranges 300-150, 150-50, and > 50 kcal/mol
+ 3 300. 150. 50.               ! Report weighted RMS errors for the energy ranges 300-150, 150-50, and < 50 kcal/mol
  6                             ! Number of atoms
  C H H H H  H                  ! Atom labels
  1 2 2 2 2  2                  ! Exchange all H atoms

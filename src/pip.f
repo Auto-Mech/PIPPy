@@ -20,6 +20,7 @@ c MPI
 
       integer natom1,a,b,itmp(100)
       logical linteronly,lwrite(-1:100),lcust
+!      logical fit_ex, test_ex
 
       common/foox/rrr,nncoef,natom1,linteronly,lwrite
 
@@ -34,12 +35,11 @@ c        write(6,*)"Began at ",timestart
       ENDIF
 !      write(6,"(a, i3)") " MPI current proc: ", my_id
 
+      lcust = .false.
+!      lcust = .true. ! turn on nonstandard options
+
       IF (my_id.eq.0) THEN
 !      write(6,"(a, i3)") " MPI num procs: ", nprocs
-
-      lcust = .false.
-      lcust = .true. ! turn on nonstandard options
-
       write(6,'(100("*"))')
       write(6,*)
       write(6,*)"PIP: A Fortran code for fitting permutationally",
@@ -54,9 +54,32 @@ c        write(6,*)"Began at ",timestart
       read(5,*)ncut,(cut(j),j=1,ncut)
       ENDIF
 
+      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(datafit, 1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(datatest,1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
+
+!      inquire(file=datafit, exist=fit_ex)
+!      if (.not.fit_ex) then
+!        write(6,*)"No file named ",datafit," found, exiting"
+!        stop
+!      endif
+
+      call MPI_BCAST(epsilon, 1, MPI_DOUBLE_PRECISION, 0,
+     &               MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(vvref, 1, MPI_DOUBLE_PRECISION, 0,
+     &               MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(ncut, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(cut, ncut, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+      call MPI_BCAST(nwrite, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+!      call MPI_BCAST(lwrite,nwrite+2,MPI_LOGICAL,0,MPI_COMM_WORLD, ierr)
+
       if (nwrite.eq.-1) then
         do i=1,100
           lwrite(i)=.true.
+        enddo
+      else if (nwrite.eq.0) then
+        do i=1,100
+          lwrite(i)=.false.
         enddo
       else
         do i=1,100
@@ -66,17 +89,6 @@ c        write(6,*)"Began at ",timestart
           lwrite(itmp(i))=.true.
         enddo
       endif
-
-      call MPI_BARRIER(MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(datafit, 1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(datatest,1, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(epsilon, 1, MPI_DOUBLE_PRECISION, 0,
-     &               MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(vvref, 1, MPI_DOUBLE_PRECISION, 0,
-     &               MPI_COMM_WORLD, ierr)
-!      call MPI_BCAST(lwrite,nwrite+2,MPI_LOGICAL,0,MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(ncut, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
-      call MPI_BCAST(cut, ncut, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
 
       call prepot ! generate or read basis
 
@@ -100,7 +112,7 @@ c      IF (.false.) THEN ! To not fit function
           read(7,*)dum,x(j),y(j),z(j)
         enddo
  
-        if (vvx.lt.cut(1)) then
+        if (vvx.lt.cut(1).and.vvx.gt.cut(ncut)) then
         if (.not.lcust.or.vvx.ne.0.d0) then
           if (vvx.lt.vvmin) vvmin=vvx
           ndat=ndat+1
@@ -123,30 +135,28 @@ c      IF (.false.) THEN ! To not fit function
       enddo
       close(7)
  
-      IF (my_id.eq.0) THEN
       write(6,'(34("*  "))')
       write(6,*)
       write(6,*)"Fitting to the training data in ",datafit
       write(6,*)"Using ",ndat," of the ",ndat2," provided data"
       if (datatest.eq."none".or.datatest.eq."skip") then 
-      write(6,*)"Skipping out of sampling testing"
+        write(6,*)"Skipping out of sampling testing"
       else
-      write(6,*)"Out of sample testing using data in ",datatest
+        write(6,*)"Out of sample testing using data in ",datatest
       endif
       write(6,*)"Weight function parameters: epsilon = ",
      & epsilon," and vref = ",vvref
       write(6,*)
-      ENDIF
  
       call svdfit(vv,sig,ndat,coef,ncoef,ndat,ncoef)
  
       do i=1,ncut
-      erra(i)=0.d0 ! RMSE for E < cut(i)
-      errc(i)=0.d0 ! RMSE for cut(i) < E < cut(i-1)
-      wc(i)=0.d0
-      wa(i)=0.d0
-      nc(i)=0
-      na(i)=0
+        erra(i)=0.d0 ! RMSE for E < cut(i)
+        errc(i)=0.d0 ! RMSE for cut(i) < E < cut(i-1)
+        wc(i)=0.d0
+        wa(i)=0.d0
+        nc(i)=0
+        na(i)=0
       enddo
       vvimin=1d50
       vvxmin=1d50
@@ -162,23 +172,22 @@ c      IF (.false.) THEN ! To not fit function
           vvx=vvx+coef(j)*basis(j)
           if (i.eq.1) write(56,'(i5,e20.10)')j,coef(j)
         enddo
-!        if (lwrite(20)) write(20,'(i10,10000e18.6)')i,1./sig(i),vv(i),
         if (lwrite(20)) write(20,'(i10,*(e18.6))')i,1./sig(i),vv(i),
      &                                              (basis(j),j=1,ncoef)
         if (lwrite(11)) write(11,'(i10,3e18.6)')i,1./sig(i),vv(i),vvx
         do k=1,ncut
-        if (vv(i).lt.cut(k)) then
-          erra(k)=erra(k)+(vvx-vv(i))**2/sig(i)**2
-          wa(k)=wa(k)+1.d0/sig(i)**2
-          na(k)=na(k)+1
-        endif
+          if (vv(i).lt.cut(k)) then
+            erra(k)=erra(k)+(vvx-vv(i))**2/sig(i)**2
+            wa(k)=wa(k)+1.d0/sig(i)**2
+            na(k)=na(k)+1
+          endif
         enddo
         do k=1,ncut-1
-        if (vv(i).lt.cut(k).and.vv(i).ge.cut(k+1)) then
-          errc(k)=errc(k)+(vvx-vv(i))**2/sig(i)**2
-          wc(k)=wc(k)+1.d0/sig(i)**2
-          nc(k)=nc(k)+1
-        endif
+          if (vv(i).lt.cut(k).and.vv(i).ge.cut(k+1)) then
+            errc(k)=errc(k)+(vvx-vv(i))**2/sig(i)**2
+            wc(k)=wc(k)+1.d0/sig(i)**2
+            nc(k)=nc(k)+1
+          endif
         enddo
         if (vvx.lt.vvxmin) then
           vvxmin=vvx
@@ -199,10 +208,10 @@ c      IF (.false.) THEN ! To not fit function
       write(6,*)'          E       number    %weight       error',
      &                  '   (     number        error   )'
       do k=1,ncut
-      erra(k)=dsqrt(erra(k)/wa(k))
-      errc(k)=dsqrt(errc(k)/wc(k))
-      write(6,'(f15.2,i10,f10.1,f15.5," ( ",i10,f15.5," ) ")')
-     &  cut(k),nc(k),wc(k)/wa(1)*100.,errc(k),na(k),erra(k)
+        if (wa(k).ne.0.d0) erra(k)=dsqrt(erra(k)/wa(k))
+        if (wc(k).ne.0.d0) errc(k)=dsqrt(errc(k)/wc(k))
+        write(6,'(f15.2,i10,f10.1,f15.5," ( ",i10,f15.5," ) ")')
+     &    cut(k),nc(k),wc(k)/wa(1)*100.,errc(k),na(k),erra(k)
       enddo
       write(6,*) 
       write(6,*) "Comparision of low energy points found while fitting"
@@ -214,6 +223,12 @@ c      IF (.false.) THEN ! To not fit function
 c     test set
       if (datatest.eq."none".or.datatest.eq."skip") then ! skip
       else
+!      inquire(file=datatest, exist=test_ex)
+!      if (.not.test_ex) then
+!        write(6,*)"No file named ",datatest," found"
+!        write(6,*)"Skipping test set."
+!        go to 290
+!      endif
       open(7,file=datatest)
       rewind(7)
       read(7,*)ndat2
@@ -232,23 +247,23 @@ c     test set
  
         xcut=cut(1) 
         if (lcust.and.ncut.gt.1) xcut=cut(2)
-        if (vvx.lt.xcut) then
-        if (.not.lcust.or.vvx.ne.0.d0) then
-          ndat=ndat+1
-          vv(ndat)=vvx
-          ii=0
-          a=natom
-          if (linteronly) a=natom1
-          do j=1,a
-            b=j
-            if (linteronly) b=natom1
-            do k=b+1,natom
-              ii=ii+1
+        if (vvx.lt.xcut.and.vvx.gt.cut(ncut)) then
+          if (.not.lcust.or.vvx.ne.0.d0) then
+            ndat=ndat+1
+            vv(ndat)=vvx
+            ii=0
+            a=natom
+            if (linteronly) a=natom1
+            do j=1,a
+              b=j
+              if (linteronly) b=natom1
+              do k=b+1,natom
+                ii=ii+1
         rrr(ndat,ii)=dsqrt((x(j)-x(k))**2+(y(j)-y(k))**2+(z(j)-z(k))**2)
+              enddo  
             enddo  
-          enddo  
-       sig(ndat)=1.d0/(epsilon/(dabs(vv(ndat)-vvref)+epsilon))
-        endif
+         sig(ndat)=1.d0/(epsilon/(dabs(vv(ndat)-vvref)+epsilon))
+          endif
         endif
       enddo  
  
@@ -271,7 +286,9 @@ c     test set
  
       write(6,*)
       write(6,*)"Out of sample test set error: ",err3 
-      endif
+      endif ! test set
+
+! 290  continue
 
       write(6,*)
       write(6,*)"Optimized coefficients written to coef.dat"
@@ -279,14 +296,14 @@ c     test set
       write(6,'(100("*"))')
 
       if (lcust) then
-      ix=1
-      if (ncut.gt.1) ix=2 
-      write(6,*) 
-      write(6,*) "summary",ncoef,erra(ix),err3
-      write(6,*) 
+        ix=1
+        if (ncut.gt.1) ix=2 
+        write(6,*) 
+        write(6,*) "summary",ncoef,erra(ix),err3
+        write(6,*) 
       endif
  
-      ENDIF ! if (.false.)
+      ENDIF ! serial section for fitting procedure
 
       IF (my_id.eq.0) THEN
         timeend=MPI_WTIME()
