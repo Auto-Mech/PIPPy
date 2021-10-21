@@ -31,7 +31,7 @@ __pycache__/
 *.lib
 
 # Executables
-*.x
+# *.x
 *.exe
 *.out
 *.app
@@ -47,7 +47,6 @@ venv.bak/
 
 # Distribution
 .Python
-bin/
 build/
 install/
 lib/
